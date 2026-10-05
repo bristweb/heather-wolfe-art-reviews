@@ -102,14 +102,22 @@ With an Apify API token instead of the connector, `APIFY_TOKEN=… python3 scrip
 
 ## Card order
 
-The order is computed in the browser on every page load, so it changes from visit to visit:
+The order is deterministic, so it's the same on every load:
 
-1. **Recency weight.** Each review gets weight `0.5^(age / 365 days)` (half-life of 1 year), so newer reviews tend to come first.
-2. **"All reviews": soft platform diversity.** Cards are drawn one at a time by weighted random pick. A candidate's weight is multiplied by **0.4** if its platform matches the previous card and by **0.7** if it matches the card before that. Same-platform runs still happen, just less often, so the first cards are usually a mix of platforms.
-3. **Single-platform filter** (e.g. Yelp): recency-weighted shuffle only (weighted random sampling with keys `u^(1/weight)`).
-4. Rating-only reviews (empty snippet) never become cards, but they still count in the header.
+- **"All reviews": newest first, with gentle platform diversity.** For each slot, the widget takes the newest remaining review. If that review's platform matches the previous **2** cards, it takes the newest remaining review from a *different* platform instead, but only if that review is at most **~18 months (548 days)** older than the newest candidate. Otherwise it takes the newest review anyway.
+- **Single-platform filter** (e.g. Yelp): newest first.
+- Ties are broken by `id`. Rating-only reviews (empty snippet) never become cards, but they still count in the header.
 
-Constants `HALF_LIFE_DAYS`, `SAME_AS_PREV`, and `SAME_AS_PREV2` are at the top of `js/reviews-widget.js`.
+Constants `MAX_SAME_RUN` (2) and `DIVERSITY_WINDOW_DAYS` (548) are at the top of `js/reviews-widget.js`.
+
+## Header layout
+
+One compact row: rating on the left, platform filter tabs in the middle, **Write a review** on the right. The header responds to the widget's own width through CSS container queries (`container: hwa / inline-size` on `.hwa-root`), so it follows the iframe or embed width, not the browser window:
+
+- wider than ~1020px: tabs show icon, name, and count
+- ~1020px or less: tabs collapse to icon and count (the name stays in `title` / `aria-label`)
+- ~720px or less: tighter spacing, and the rating shows score, stars, and "76 reviews"
+- ~575px or less: tabs wrap onto a second line (last resort); ~320px or less: the button goes full width
 
 ## Embedding on the website
 

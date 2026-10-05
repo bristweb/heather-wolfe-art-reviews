@@ -19,31 +19,22 @@
   const fmtDate = d => new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   const label = avg => avg >= 4.75 ? 'Excellent' : avg >= 4.25 ? 'Great' : avg >= 3.5 ? 'Good' : 'Reviews';
 
-  // Card order is random on every page load, weighted toward recent reviews:
-  // recency weight = 0.5^(age / 1 year).
-  const HALF_LIFE_DAYS = 365;
-  const SAME_AS_PREV = 0.4;     // soft diversity penalty: platform of the previous card
-  const SAME_AS_PREV2 = 0.7;    // milder penalty: platform of the card before that
-  const recency = r => Math.pow(0.5, Math.max(0, (Date.now() - new Date(r.date).getTime()) / 864e5) / HALF_LIFE_DAYS);
+  // Card order: deterministic, newest first, with gentle platform diversity (same on every load).
+  const MAX_SAME_RUN = 2;          // after this many consecutive cards from one platform...
+  const DIVERSITY_WINDOW_DAYS = 548; // ...prefer another platform if its newest review is <= ~18 months older
+  const byNewest = (a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id);
 
-  // Single platform: recency-weighted shuffle (Efraimidis–Spirakis keys u^(1/w)).
-  function weightedShuffle(list) {
-    return list
-      .map(r => ({ r, k: Math.pow(Math.random(), 1 / Math.max(recency(r), 1e-6)) }))
-      .sort((a, b) => b.k - a.k)
-      .map(x => x.r);
-  }
-  // All reviews: sequential weighted random picks; a candidate's recency weight is multiplied by
-  // a penalty if its platform appeared in the last one or two cards. Same-platform runs are still
-  // allowed, just less likely.
-  function diverseShuffle(list) {
-    const rest = list.map(r => ({ r, w: Math.max(recency(r), 1e-6) })), out = [];
+  function diverseOrder(list) {
+    const rest = list.slice().sort(byNewest), out = [];
     while (rest.length) {
-      const p1 = out[out.length - 1]?.platform, p2 = out[out.length - 2]?.platform;
-      const ws = rest.map(x => x.w * (x.r.platform === p1 ? SAME_AS_PREV : 1) * (x.r.platform === p2 ? SAME_AS_PREV2 : 1));
-      let t = Math.random() * ws.reduce((s, w) => s + w, 0), i = 0;
-      while (i < ws.length - 1 && (t -= ws[i]) > 0) i++;
-      out.push(rest.splice(i, 1)[0].r);
+      let i = 0;
+      const run = out.slice(-MAX_SAME_RUN);
+      if (run.length === MAX_SAME_RUN && run.every(r => r.platform === rest[0].platform)) {
+        const j = rest.findIndex(r => r.platform !== rest[0].platform);
+        const gapDays = j < 0 ? Infinity : (new Date(rest[0].date) - new Date(rest[j].date)) / 864e5;
+        if (gapDays <= DIVERSITY_WINDOW_DAYS) i = j;
+      }
+      out.push(rest.splice(i, 1)[0]);
     }
     return out;
   }
@@ -68,8 +59,8 @@
     }
     const all = data.reviews;
     const withText = all.filter(r => r.has_text && r.snippet);  // rating-only reviews never become cards
-    const ranked = weightedShuffle(withText);
-    const allOrder = diverseShuffle(withText);
+    const newest = withText.slice().sort(byNewest);
+    const allOrder = diverseOrder(withText);
     const present = Object.keys(PLATFORMS).filter(p => all.some(r => r.platform === p));
     let active = cfg.platform;
 
@@ -77,16 +68,18 @@
       const pool = active === 'all' ? all : all.filter(r => r.platform === active);
       const rated = pool.filter(r => typeof r.rating === 'number');
       const avg = rated.length ? rated.reduce((s, r) => s + r.rating, 0) / rated.length : 5;
-      // snippet only; full text is never shown. "All": diversity-weighted shuffle; one platform: recency shuffle.
-      let shown = active === 'all' ? allOrder : ranked.filter(r => r.platform === active);
+      // snippet only; full text is never shown. "All": newest first + gentle diversity; one platform: newest first.
+      let shown = active === 'all' ? allOrder : newest.filter(r => r.platform === active);
       if (cfg.limit) shown = shown.slice(0, cfg.limit);
       const write = PLATFORMS[active === 'all' ? 'google' : active].write;
 
       const tabs = present.length > 1 ? `<div class="hwa-tabs" role="tablist" aria-label="Filter reviews by platform">
         ${['all', ...present].map(p => {
           const n = p === 'all' ? all.length : all.filter(r => r.platform === p).length;
-          return `<button role="tab" class="hwa-tab ${p === active ? 'is-active' : ''}" data-p="${p}" aria-selected="${p === active}">
-            ${p === 'all' ? '<span>All reviews</span>' : `<img src="${base}icons/${p}.svg" alt=""><span>${PLATFORMS[p].name}</span>`}
+          const name = p === 'all' ? 'All reviews' : PLATFORMS[p].name;
+          return `<button role="tab" class="hwa-tab ${p === active ? 'is-active' : ''}" data-p="${p}" aria-selected="${p === active}"
+            title="${name}: ${n} reviews" aria-label="${name}, ${n} reviews">
+            ${p === 'all' ? '<span class="hwa-tab-name">All<span class="hwa-tab-long"> reviews</span></span>' : `<img src="${base}icons/${p}.svg" alt=""><span class="hwa-tab-name">${name}</span>`}
             <em>${n}</em></button>`;
         }).join('')}</div>` : '';
 
@@ -96,7 +89,7 @@
           <div>
             <div class="hwa-label">${label(avg)}</div>
             ${stars(avg, 'hwa-stars-lg')}
-            <div class="hwa-based">Based on <strong>${pool.length}</strong> review${pool.length === 1 ? '' : 's'}${active === 'all' ? '' : ' on ' + PLATFORMS[active].name}</div>
+            <div class="hwa-based"><span class="hwa-based-pre">Based on </span><strong>${pool.length}</strong> review${pool.length === 1 ? '' : 's'}<span class="hwa-based-pre">${active === 'all' ? '' : ' on ' + PLATFORMS[active].name}</span></div>
           </div>
         </div>
         <a class="hwa-write" href="${write}" target="_blank" rel="noopener">Write a review</a>
