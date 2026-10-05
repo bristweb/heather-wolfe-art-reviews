@@ -49,12 +49,16 @@
     };
     el.classList.add('hwa-root', 'hwa-layout-' + cfg.layout);
     el.innerHTML = '<div class="hwa-loading">Loading reviews…</div>';
+    // Stay invisible (opacity 0, see CSS) until the webfont is ready AND the first render is laid out,
+    // then fade in once, so there's no font swap or re-fit flash. Header steps are pure CSS container queries.
+    const reveal = () => requestAnimationFrame(() => requestAnimationFrame(() => { el.classList.add('hwa-ready'); notifyHeight(); }));
     let data;
     try {
-      const res = await fetch(base + 'reviews/index.json', { cache: 'no-cache' });
+      const [res] = await Promise.all([fetch(base + 'reviews/index.json', { cache: 'no-cache' }), fontsReady()]);
       data = await res.json();
     } catch (e) {
       el.innerHTML = '<div class="hwa-loading">Reviews are unavailable right now.</div>';
+      reveal();
       return;
     }
     const all = data.reviews;
@@ -140,7 +144,18 @@
       notifyHeight();
     }
     render();
+    reveal();
     new ResizeObserver(notifyHeight).observe(el);
+  }
+
+  // Resolves when the widget's Inter faces are loaded, or after 1.2 s (then the metric-matched fallback shows).
+  function fontsReady() {
+    if (!document.fonts || !document.fonts.load) return Promise.resolve();
+    const faces = ['400 15px "HWA Inter"', '700 15px "HWA Inter"', 'italic 300 15px "HWA Inter"'];
+    return Promise.race([
+      Promise.all(faces.map(f => document.fonts.load(f))).catch(() => {}),
+      new Promise(r => setTimeout(r, 1200)),
+    ]);
   }
 
   // When rendered inside an iframe (embed.html), tell the parent page our height.
