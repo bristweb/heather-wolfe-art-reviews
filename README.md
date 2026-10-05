@@ -100,6 +100,14 @@ With an Apify API token instead of the connector, `APIFY_TOKEN=… python3 scrip
 
 **About Elfsight:** the only Elfsight widget on heatherwolfeart.com is an **Instagram feed** (InstaShow, widget id `1677b7d0-6774-4670-903d-ffb3b4c9ed6c`, share link `https://1677b7d067744670903dffb3b4c9ed6c.elf.site`), not a reviews widget, so no review data comes from Elfsight. Its config is at `https://core.service.elfsight.com/p/boot/?page=https%3A%2F%2Fheatherwolfeart.com%2F&w=1677b7d0-6774-4670-903d-ffb3b4c9ed6c`. The home page's "Testimonials" (Brendan C, Haley R, Ciera S) are excerpts of Google reviews and are flagged `featured_on_website: true`.
 
+## Card order
+
+The order is computed in the browser on every page load, so it changes from visit to visit:
+
+1. **Recency-weighted shuffle.** Each review gets weight `0.5^(age / 365 days)` (half-life of 1 year) and a random key `u^(1/weight)` (weighted random sampling). Cards are sorted by that key, so newer reviews usually come first, but not always in the same order.
+2. **Platform interleave ("All reviews" only).** Cards are picked greedily: the next card is the highest-ranked remaining review from a *different* platform than the previous one. When only one platform is left, its reviews follow in order. This keeps the first cards from all coming from Google.
+3. A single-platform filter (e.g. Yelp) uses step 1 only. Rating-only reviews (empty snippet) never become cards, but they still count in the header.
+
 ## Embedding on the website
 
 **Option A, iframe (simplest, works in Framer's Embed component):**
