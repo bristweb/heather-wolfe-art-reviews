@@ -7,7 +7,7 @@
   font-family:Inter,"Inter Placeholder",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;letter-spacing:-.01em;color:var(--hwa-ink);max-width:1200px;margin:0 auto;padding:6px 6px;box-sizing:border-box;background:transparent}
 .hwa-root *{box-sizing:border-box}
 .hwa-loading{padding:40px;text-align:center;color:var(--hwa-muted)}
-.hwa-tabs{flex:1 1 auto;min-width:0;display:flex;gap:6px;flex-wrap:nowrap;justify-content:center}
+.hwa-tabs{order:2;flex:1 1 auto;min-width:0;display:flex;gap:6px;flex-wrap:nowrap;justify-content:center}
 .hwa-tab:focus-visible,.hwa-write:focus-visible,.hwa-nav:focus-visible{outline:2px solid var(--hwa-accent);outline-offset:2px}
 .hwa-tab{display:inline-flex;align-items:center;gap:6px;flex:none;border:1px solid var(--hwa-line);background:#fff;border-radius:999px;padding:6px 12px;font:inherit;font-size:13.5px;color:var(--hwa-ink);cursor:pointer;transition:all .15s;white-space:nowrap}
 .hwa-tab img{width:16px;height:16px}
@@ -17,11 +17,11 @@
 .hwa-tab.is-active img[src$="zola.svg"],.hwa-tab.is-active img[src$="x.svg"],.hwa-tab.is-active img[src$="tiktok.svg"]{filter:brightness(0) invert(1)}
 .hwa-tab.is-active em{background:rgba(255,255,255,.18);color:#fff}
 .hwa-header{display:flex;align-items:center;gap:12px 20px;background:var(--hwa-card);border:1px solid var(--hwa-line);border-radius:14px;padding:12px 18px;margin-bottom:14px;box-shadow:0 1px 2px rgba(32,74,96,.04)}
-.hwa-summary{display:flex;align-items:center;gap:12px;flex:none}
+.hwa-summary{display:flex;align-items:center;gap:12px;flex:none;order:1}
 .hwa-score{font-size:38px;font-weight:700;line-height:1;letter-spacing:-.04em}
 .hwa-label{font-weight:700;font-size:15px;line-height:1.2;margin-bottom:1px}
 .hwa-based{font-size:12px;color:var(--hwa-muted);margin-top:2px;white-space:nowrap}
-.hwa-write{flex:none;background:var(--hwa-accent);color:#fff;text-decoration:none;font-weight:600;font-size:13.5px;padding:9px 18px;border-radius:999px;transition:background .15s;white-space:nowrap}
+.hwa-write{order:3;flex:none;background:var(--hwa-accent);color:#fff;text-decoration:none;font-weight:600;font-size:13.5px;padding:9px 18px;border-radius:999px;transition:background .15s;white-space:nowrap}
 .hwa-write:hover{background:var(--hwa-accent-2)}
 .hwa-stars{display:inline-flex;gap:2px;vertical-align:middle}
 .hwa-stars i{display:block;width:17px;height:17px}
