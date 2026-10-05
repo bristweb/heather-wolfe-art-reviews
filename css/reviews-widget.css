@@ -16,7 +16,7 @@
 .hwa-tab.is-active{background:var(--hwa-accent);color:#fff;border-color:var(--hwa-accent)}
 .hwa-tab.is-active img[src$="zola.svg"],.hwa-tab.is-active img[src$="x.svg"],.hwa-tab.is-active img[src$="tiktok.svg"]{filter:brightness(0) invert(1)}
 .hwa-tab.is-active em{background:rgba(255,255,255,.18);color:#fff}
-.hwa-header{display:flex;align-items:center;gap:12px 20px;background:var(--hwa-card);border:1px solid var(--hwa-line);border-radius:14px;padding:12px 18px;margin-bottom:14px;box-shadow:0 1px 2px rgba(32,74,96,.04)}
+.hwa-header{display:flex;align-items:center;gap:12px 20px;background:var(--hwa-card);border:1px solid var(--hwa-line);border-radius:14px;padding:12px 18px;margin-bottom:14px;box-shadow:none}
 .hwa-summary{display:flex;align-items:center;gap:12px;flex:none;order:1}
 .hwa-score{font-size:38px;font-weight:700;line-height:1;letter-spacing:-.04em}
 .hwa-label{font-weight:700;font-size:15px;line-height:1.2;margin-bottom:1px}
@@ -37,9 +37,10 @@
 @container hwa (max-width:1024px){.hwa-layout-carousel .hwa-track{grid-auto-columns:calc((100% - 32px)/3)}}
 @container hwa (max-width:760px){.hwa-layout-carousel .hwa-track{grid-auto-columns:calc((100% - 16px)/2)}}
 @container hwa (max-width:520px){.hwa-layout-carousel .hwa-track{grid-auto-columns:88%}}
-.hwa-card{color:inherit;text-decoration:none;cursor:pointer;outline:none;display:flex;flex-direction:column;gap:10px;background:var(--hwa-card);border:1px solid var(--hwa-line);border-radius:14px;padding:18px;min-height:240px;box-shadow:0 1px 2px rgba(32,74,96,.04);transition:box-shadow .2s,transform .2s,border-color .2s}
-.hwa-card:hover,.hwa-card:focus-visible{border-color:var(--hwa-accent);box-shadow:0 8px 24px rgba(32,74,96,.12);transform:translateY(-2px)}
-.hwa-card:focus-visible{box-shadow:0 0 0 3px rgba(32,74,96,.25),0 8px 24px rgba(32,74,96,.12)}
+.hwa-card{color:inherit;text-decoration:none;cursor:pointer;display:flex;flex-direction:column;gap:10px;background:var(--hwa-card);border:1px solid var(--hwa-line);border-radius:14px;padding:18px;min-height:240px;box-shadow:none;transition:transform .2s,border-color .2s}
+.hwa-card:hover,.hwa-card:focus-visible{border-color:var(--hwa-accent);box-shadow:none;transform:translateY(-2px)}
+.hwa-card:focus{outline:none}
+.hwa-card:focus-visible{outline:3px solid var(--hwa-accent);outline-offset:-1px;box-shadow:none}
 .hwa-card:active{transform:translateY(0)}
 .hwa-card:hover .hwa-link{color:var(--hwa-accent-2)}
 .hwa-card:hover .hwa-arrow{transform:translateX(3px)}
