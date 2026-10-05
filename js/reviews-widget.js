@@ -19,30 +19,31 @@
   const fmtDate = d => new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   const label = avg => avg >= 4.75 ? 'Excellent' : avg >= 4.25 ? 'Great' : avg >= 3.5 ? 'Good' : 'Reviews';
 
-  // Recency-weighted random order, recomputed on every page load.
-  // weight = 0.5^(age / 1 year); key = u^(1/weight) (Efraimidis–Spirakis weighted sampling),
-  // so newer reviews tend to come first but the order varies each load.
+  // Card order is random on every page load, weighted toward recent reviews:
+  // recency weight = 0.5^(age / 1 year).
   const HALF_LIFE_DAYS = 365;
+  const SAME_AS_PREV = 0.4;     // soft diversity penalty: platform of the previous card
+  const SAME_AS_PREV2 = 0.7;    // milder penalty: platform of the card before that
+  const recency = r => Math.pow(0.5, Math.max(0, (Date.now() - new Date(r.date).getTime()) / 864e5) / HALF_LIFE_DAYS);
+
+  // Single platform: recency-weighted shuffle (Efraimidis–Spirakis keys u^(1/w)).
   function weightedShuffle(list) {
-    const now = Date.now();
     return list
-      .map(r => {
-        const ageDays = Math.max(0, (now - new Date(r.date).getTime()) / 864e5);
-        const w = Math.pow(0.5, ageDays / HALF_LIFE_DAYS);
-        return { r, k: Math.pow(Math.random(), 1 / Math.max(w, 1e-6)) };
-      })
+      .map(r => ({ r, k: Math.pow(Math.random(), 1 / Math.max(recency(r), 1e-6)) }))
       .sort((a, b) => b.k - a.k)
       .map(x => x.r);
   }
-  // Greedy platform interleave: next card = highest-ranked remaining review from a different
-  // platform than the previous card (falls back to the same platform when nothing else is left).
-  function interleave(ordered) {
-    const rest = ordered.slice(), out = [];
+  // All reviews: sequential weighted random picks; a candidate's recency weight is multiplied by
+  // a penalty if its platform appeared in the last one or two cards. Same-platform runs are still
+  // allowed, just less likely.
+  function diverseShuffle(list) {
+    const rest = list.map(r => ({ r, w: Math.max(recency(r), 1e-6) })), out = [];
     while (rest.length) {
-      const prev = out.length ? out[out.length - 1].platform : null;
-      let i = rest.findIndex(r => r.platform !== prev);
-      if (i < 0) i = 0;
-      out.push(rest.splice(i, 1)[0]);
+      const p1 = out[out.length - 1]?.platform, p2 = out[out.length - 2]?.platform;
+      const ws = rest.map(x => x.w * (x.r.platform === p1 ? SAME_AS_PREV : 1) * (x.r.platform === p2 ? SAME_AS_PREV2 : 1));
+      let t = Math.random() * ws.reduce((s, w) => s + w, 0), i = 0;
+      while (i < ws.length - 1 && (t -= ws[i]) > 0) i++;
+      out.push(rest.splice(i, 1)[0].r);
     }
     return out;
   }
@@ -66,8 +67,9 @@
       return;
     }
     const all = data.reviews;
-    const ranked = weightedShuffle(all.filter(r => r.has_text && r.snippet));  // rating-only reviews never become cards
-    const allOrder = interleave(ranked);
+    const withText = all.filter(r => r.has_text && r.snippet);  // rating-only reviews never become cards
+    const ranked = weightedShuffle(withText);
+    const allOrder = diverseShuffle(withText);
     const present = Object.keys(PLATFORMS).filter(p => all.some(r => r.platform === p));
     let active = cfg.platform;
 
@@ -75,7 +77,7 @@
       const pool = active === 'all' ? all : all.filter(r => r.platform === active);
       const rated = pool.filter(r => typeof r.rating === 'number');
       const avg = rated.length ? rated.reduce((s, r) => s + r.rating, 0) / rated.length : 5;
-      // snippet only; full text is never shown. "All": shuffled + interleaved; one platform: shuffled.
+      // snippet only; full text is never shown. "All": diversity-weighted shuffle; one platform: recency shuffle.
       let shown = active === 'all' ? allOrder : ranked.filter(r => r.platform === active);
       if (cfg.limit) shown = shown.slice(0, cfg.limit);
       const write = PLATFORMS[active === 'all' ? 'google' : active].write;

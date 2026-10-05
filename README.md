@@ -104,9 +104,12 @@ With an Apify API token instead of the connector, `APIFY_TOKEN=… python3 scrip
 
 The order is computed in the browser on every page load, so it changes from visit to visit:
 
-1. **Recency-weighted shuffle.** Each review gets weight `0.5^(age / 365 days)` (half-life of 1 year) and a random key `u^(1/weight)` (weighted random sampling). Cards are sorted by that key, so newer reviews usually come first, but not always in the same order.
-2. **Platform interleave ("All reviews" only).** Cards are picked greedily: the next card is the highest-ranked remaining review from a *different* platform than the previous one. When only one platform is left, its reviews follow in order. This keeps the first cards from all coming from Google.
-3. A single-platform filter (e.g. Yelp) uses step 1 only. Rating-only reviews (empty snippet) never become cards, but they still count in the header.
+1. **Recency weight.** Each review gets weight `0.5^(age / 365 days)` (half-life of 1 year), so newer reviews tend to come first.
+2. **"All reviews": soft platform diversity.** Cards are drawn one at a time by weighted random pick. A candidate's weight is multiplied by **0.4** if its platform matches the previous card and by **0.7** if it matches the card before that. Same-platform runs still happen, just less often, so the first cards are usually a mix of platforms.
+3. **Single-platform filter** (e.g. Yelp): recency-weighted shuffle only (weighted random sampling with keys `u^(1/weight)`).
+4. Rating-only reviews (empty snippet) never become cards, but they still count in the header.
+
+Constants `HALF_LIFE_DAYS`, `SAME_AS_PREV`, and `SAME_AS_PREV2` are at the top of `js/reviews-widget.js`.
 
 ## Embedding on the website
 
