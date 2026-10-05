@@ -1,0 +1,57 @@
+{
+  "business": "Heather Wolfe Art",
+  "website": "https://heatherwolfeart.com/",
+  "checked_at": "2026-10-05",
+  "notes": "Every URL below is linked from the heatherwolfeart.com footer/home page. `reviews: true` platforms are monitored for reviews; the rest are social profiles with no review system. `reported_*` values are what the platform itself showed on checked_at.",
+  "platforms": [
+    {
+      "platform": "google",
+      "name": "Google",
+      "reviews": true,
+      "linked_url": "https://g.page/r/CUdS9bBcbapvEAE/review",
+      "review_page_url": "https://search.google.com/local/reviews?placeid=ChIJ2V86YMkXXIgRR1L1sFxtqm8",
+      "maps_url": "https://www.google.com/maps?cid=8046363929124098631",
+      "place_id": "ChIJ2V86YMkXXIgRR1L1sFxtqm8",
+      "cid": "8046363929124098631",
+      "reported_rating": 5.0,
+      "reported_count": 57,
+      "icon": "icons/google.svg"
+    },
+    {
+      "platform": "yelp",
+      "name": "Yelp",
+      "reviews": true,
+      "linked_url": "https://www.yelp.com/biz/heather-wolfe-art-knoxville",
+      "review_page_url": "https://www.yelp.com/biz/heather-wolfe-art-knoxville",
+      "reported_rating": 5.0,
+      "reported_count": 5,
+      "icon": "icons/yelp.svg"
+    },
+    {
+      "platform": "zola",
+      "name": "Zola",
+      "reviews": true,
+      "linked_url": "https://www.zola.com/wedding-vendors/wedding-extras/heather-wolfe-art-live-painting",
+      "review_page_url": "https://www.zola.com/wedding-vendors/wedding-extras/heather-wolfe-art-live-painting#reviews",
+      "reported_rating": 5.0,
+      "reported_count": 5,
+      "icon": "icons/zola.svg"
+    },
+    {
+      "platform": "facebook",
+      "name": "Facebook",
+      "reviews": true,
+      "linked_url": "https://www.facebook.com/HeatherWolfeArt",
+      "review_page_url": "https://www.facebook.com/HeatherWolfeArt/reviews",
+      "reported_rating": "100% recommend",
+      "reported_count": 16,
+      "rating_note": "Facebook uses recommend / don't recommend, not stars; `rating` is null for these reviews. Only 9 of 16 are publicly visible without a login.",
+      "icon": "icons/facebook.svg"
+    },
+    { "platform": "instagram", "name": "Instagram", "reviews": false, "linked_url": "https://www.instagram.com/heather_wolfe_art", "icon": "icons/instagram.svg", "note": "Shown on the site via the Elfsight InstaShow feed widget (not a reviews widget)." },
+    { "platform": "tiktok", "name": "TikTok", "reviews": false, "linked_url": "https://www.tiktok.com/@heatherwolfeart", "icon": "icons/tiktok.svg" },
+    { "platform": "youtube", "name": "YouTube", "reviews": false, "linked_url": "https://www.youtube.com/@HeatherWolfeArt", "icon": "icons/youtube.svg" },
+    { "platform": "x", "name": "X", "reviews": false, "linked_url": "https://x.com/HeatherWolfeArt", "icon": "icons/x.svg" },
+    { "platform": "etsy", "name": "Etsy", "reviews": false, "linked_url": "https://heatherwolfeart.etsy.com", "icon": "icons/etsy.svg", "note": "Etsy shop has product reviews but etsy.com returned HTTP 403 to automated fetches on 2026-10-05; not yet collected." }
+  ]
+}
