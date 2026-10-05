@@ -49,7 +49,7 @@
       if (cfg.limit) shown = shown.slice(0, cfg.limit);
       const write = PLATFORMS[active === 'all' ? 'google' : active].write;
 
-      const tabs = present.length > 1 ? `<div class="hwa-tabs" role="tablist">
+      const tabs = present.length > 1 ? `<div class="hwa-tabs" role="tablist" aria-label="Filter reviews by platform">
         ${['all', ...present].map(p => {
           const n = p === 'all' ? all.length : all.filter(r => r.platform === p).length;
           return `<button role="tab" class="hwa-tab ${p === active ? 'is-active' : ''}" data-p="${p}" aria-selected="${p === active}">
@@ -66,30 +66,32 @@
             <div class="hwa-based">Based on <strong>${pool.length}</strong> review${pool.length === 1 ? '' : 's'}${active === 'all' ? '' : ' on ' + PLATFORMS[active].name}</div>
           </div>
         </div>
-        <div class="hwa-sources">${(active === 'all' ? present : [active]).map(p => `<a href="${PLATFORMS[p].page}" target="_blank" rel="noopener" title="${PLATFORMS[p].name} reviews"><img src="${base}icons/${p}.svg" alt="${PLATFORMS[p].name}"></a>`).join('')}</div>
         <a class="hwa-write" href="${write}" target="_blank" rel="noopener">Write a review</a>
+        ${tabs}
       </header>`;
 
       const cards = shown.map(r => {
         const P = PLATFORMS[r.platform] || { name: r.platform };
         const rating = typeof r.rating === 'number' ? stars(r.rating)
           : `<span class="hwa-rec"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 9h3v9H2zM7 18h7.6a2 2 0 0 0 2-1.6l1.2-6A2 2 0 0 0 15.8 8H12V4.5A2.5 2.5 0 0 0 9.5 2L7 8z"/></svg>Recommends</span>`;
-        return `<article class="hwa-card" data-platform="${esc(r.platform)}">
+        const aria = `Read ${r.reviewer_display_name}'s review on ${P.name} (opens in a new tab)`;
+        // The whole card is one link; nothing inside it is interactive (no nested links).
+        return `<a class="hwa-card" data-platform="${esc(r.platform)}" href="${esc(r.review_url)}" target="_blank" rel="noopener" aria-label="${esc(aria)}">
           <div class="hwa-card-top">
             <img class="hwa-avatar" src="${base}${esc(r.reviewer_image)}" alt="" loading="lazy" width="44" height="44">
             <div class="hwa-who">
               <div class="hwa-name">${esc(r.reviewer_display_name)}</div>
               <time datetime="${esc(r.date)}">${fmtDate(r.date)}</time>
             </div>
-            <img class="hwa-platform" src="${base}icons/${esc(r.platform)}.svg" alt="${esc(P.name)}" title="${esc(P.name)}">
+            <img class="hwa-platform" src="${base}icons/${esc(r.platform)}.svg" alt="">
           </div>
           ${rating}
           <p class="hwa-text">${esc(r.snippet)}</p>
-          <a class="hwa-link" href="${esc(r.review_url)}" target="_blank" rel="noopener">View on ${esc(P.name)} <span aria-hidden="true">→</span></a>
-        </article>`;
+          <span class="hwa-link" aria-hidden="true">View on ${esc(P.name)} <span class="hwa-arrow">→</span></span>
+        </a>`;
       }).join('');
 
-      el.innerHTML = `${tabs}${header}
+      el.innerHTML = `${header}
         <div class="hwa-viewport">
           ${cfg.layout === 'carousel' ? '<button class="hwa-nav hwa-prev" aria-label="Previous reviews">‹</button>' : ''}
           <div class="hwa-track">${cards}</div>
