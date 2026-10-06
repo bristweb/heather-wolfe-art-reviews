@@ -1,16 +1,12 @@
 {
   "generated_by": "scripts/build-index.mjs",
   "summary": {
-    "total": 79,
-    "rated": 70,
+    "total": 76,
+    "rated": 68,
     "average_rating": 5,
     "platforms": {
       "google": {
         "count": 57,
-        "average_rating": 5
-      },
-      "etsy": {
-        "count": 3,
         "average_rating": 5
       },
       "zola": {
@@ -23,7 +19,7 @@
       },
       "facebook": {
         "count": 9,
-        "average_rating": null
+        "average_rating": 5
       }
     }
   },
@@ -39,7 +35,6 @@
     "data/reviews/google-2025-11-04-kathryn-r.json",
     "data/reviews/google-2025-10-24-erica-m.json",
     "data/reviews/google-2025-10-22-meredith-w.json",
-    "data/reviews/etsy-2025-10-21-merlyn.json",
     "data/reviews/google-2025-08-23-jessica-w.json",
     "data/reviews/zola-2025-08-22-jessica-w.json",
     "data/reviews/google-2025-08-17-gabrielle-r.json",
@@ -49,7 +44,6 @@
     "data/reviews/zola-2025-04-30-emily-g.json",
     "data/reviews/zola-2025-04-30-ashley.json",
     "data/reviews/google-2025-04-15-evan-r.json",
-    "data/reviews/etsy-2025-04-02-amy.json",
     "data/reviews/google-2025-03-06-lindsey-k.json",
     "data/reviews/google-2024-10-08-brendan-c.json",
     "data/reviews/google-2024-09-19-brittany-c.json",
@@ -105,8 +99,7 @@
     "data/reviews/facebook-2017-01-24-lynn-t.json",
     "data/reviews/facebook-2016-10-19-blake-r.json",
     "data/reviews/facebook-2016-06-07-john-f.json",
-    "data/reviews/facebook-2016-02-14-cynthia-j.json",
-    "data/reviews/etsy-2009-09-17-anonymous.json"
+    "data/reviews/facebook-2016-02-14-cynthia-j.json"
   ],
   "reviews": [
     {
@@ -408,30 +401,6 @@
       "has_text": true
     },
     {
-      "file": "data/reviews/etsy-2025-10-21-merlyn.json",
-      "id": "etsy-0460902c0cb0",
-      "platform": "etsy",
-      "platform_review_id": "4777804519",
-      "reviewer_name": "Merlyn",
-      "reviewer_profile_url": null,
-      "reviewer_image": "data/images/reviewers/etsy-2025-10-21-merlyn.svg",
-      "reviewer_image_source_url": null,
-      "rating": 5,
-      "text": "Thank you so much.  It makes painting skin so much easier instead of having to mix.  Call me lazy.",
-      "date": "2025-10-21T12:00:00Z",
-      "review_url": "https://www.etsy.com/shop/heatherwolfeart#reviews",
-      "owner_reply": null,
-      "collected_at": "2026-10-06T01:34:51Z",
-      "source": "direct",
-      "item_reviewed": {
-        "title": "FASTONE Acrylic Skin Tone Paint Set - 6 Pack Pro Premades",
-        "listing_id": "1872977093",
-        "url": "https://www.etsy.com/listing/1872977093"
-      },
-      "etsy_shop_id": 5453283,
-      "has_text": true
-    },
-    {
       "file": "data/reviews/google-2025-08-23-jessica-w.json",
       "id": "google-cd2152a2f073",
       "platform": "google",
@@ -663,30 +632,6 @@
       "updated_at": "2026-10-06T00:09:42Z",
       "reviewer_review_count": 3,
       "language": "en",
-      "has_text": true
-    },
-    {
-      "file": "data/reviews/etsy-2025-04-02-amy.json",
-      "id": "etsy-e894444db691",
-      "platform": "etsy",
-      "platform_review_id": "4533455087",
-      "reviewer_name": "Amy",
-      "reviewer_profile_url": null,
-      "reviewer_image": "data/images/reviewers/etsy-2025-04-02-amy.svg",
-      "reviewer_image_source_url": null,
-      "rating": 5,
-      "text": "Absolutely beautiful!! Wonderful getting to meet Heather! She created such a precious keepsake for our family!",
-      "date": "2025-04-02T12:00:00Z",
-      "review_url": "https://www.etsy.com/shop/heatherwolfeart#reviews",
-      "owner_reply": null,
-      "collected_at": "2026-10-06T01:34:51Z",
-      "source": "direct",
-      "item_reviewed": {
-        "title": "Canvas Prints With Photography Included",
-        "listing_id": "1873803908",
-        "url": "https://www.etsy.com/listing/1873803908"
-      },
-      "etsy_shop_id": 5453283,
       "has_text": true
     },
     {
@@ -1981,7 +1926,7 @@
       "reviewer_profile_url": null,
       "reviewer_image": "data/images/reviewers/facebook-2018-01-23-jessica-v.jpg",
       "reviewer_image_source_url": "https://scontent-iad6-1.xx.fbcdn.net/v/t39.30808-1/718510518_10164750624654084_3821341738067283878_n.jpg?stp=cp0_dst-jpg_tt6&cstp=mx1023x1023&ctp=s40x40&_nc_cat=100&ccb=1-7&_nc_sid=e99d92&_nc_ohc=YnxEJlsqZ34Q7kNvwGxzawW&_nc_oc=Adpsq9gWu1lbQFTobwhbHUB3i42jFcqxndhaZoArmk66M0CltyF_K4pGiv2ea2Aob1GL_F6H1ILmz-I1_2mdUhZG&_nc_zt=24&_nc_ht=scontent-iad6-1.xx&_nc_gid=PdL9tjhZsiJ2RvSbaxjdUg&_nc_ss=70289&oh=00_AQPJgu1MYsOKGyejEoNVytRvbsWJxbV6VYTs9Wdz6d3Amw&oe=6AC9FB4F",
-      "rating": null,
+      "rating": 5,
       "text": "I purchased one for my mom of our bullmastiff for Christmas and it’s perfect looks exactly like our boy she loves it!! I highly recommend them she’s awesome, and does amazing work!!!",
       "date": "2018-01-23T03:29:28Z",
       "review_url": "https://www.facebook.com/jessica.valenti/posts/pfbid02i1a251E9fmgqB3Y536cT4xiwH9Sx1cLkkEkXKBuHu7WT5jrWorLnzmR4DHCynYj4l",
@@ -1993,6 +1938,7 @@
       "tags": [
         "5 stars"
       ],
+      "rating_source": "facebook recommendation tag \"5 stars\"",
       "has_text": true
     },
     {
@@ -2094,30 +2040,6 @@
       "updated_at": "2026-10-06T00:09:42Z",
       "recommended": true,
       "has_text": true
-    },
-    {
-      "file": "data/reviews/etsy-2009-09-17-anonymous.json",
-      "id": "etsy-31e8a97d29f3",
-      "platform": "etsy",
-      "platform_review_id": "19158574",
-      "reviewer_name": null,
-      "reviewer_profile_url": null,
-      "reviewer_image": "data/images/reviewers/etsy-2009-09-17-anonymous.svg",
-      "reviewer_image_source_url": null,
-      "rating": 5,
-      "text": "",
-      "date": "2009-09-17T12:00:00Z",
-      "review_url": "https://www.etsy.com/shop/heatherwolfeart#reviews",
-      "owner_reply": null,
-      "collected_at": "2026-10-06T01:34:51Z",
-      "source": "direct",
-      "item_reviewed": {
-        "title": "Vicchio, Italy - by Heather Wolfe",
-        "listing_id": "20046009",
-        "url": "https://www.etsy.com/listing/20046009"
-      },
-      "etsy_shop_id": 5453283,
-      "has_text": false
     }
   ]
 }

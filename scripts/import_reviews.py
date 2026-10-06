@@ -140,12 +140,24 @@ def from_yelp(x):
                        'language': x.get('language')})
 
 
+def fb_star_tag(tags):
+    """Facebook reviews are recommend / don't recommend. A star value is stored only when Facebook itself shows one,
+    i.e. a recommendation tag like '5 stars' on the review. Never inferred from 'recommends'."""
+    for t in tags or []:
+        m = re.fullmatch(r'\s*([1-5])\s*stars?\s*', str(t), re.I)
+        if m:
+            return int(m.group(1)), t
+    return None, None
+
+
 def from_facebook(x):
     u = x.get('user') or {}
+    stars, tag = fb_star_tag(x.get('tags'))
     return dict(platform='facebook', pid=x['id'], name=u.get('name'), photo=u.get('profilePic'),
-                profile=u.get('profileUrl'), rating=None, text=x.get('text') or '', date=iso(x['date']),
+                profile=u.get('profileUrl'), rating=stars, text=x.get('text') or '', date=iso(x['date']),
                 url=x.get('url') or REVIEW_PAGE['facebook'], reply=None,
-                extra={'recommended': bool(x.get('isRecommended')), 'tags': x.get('tags') or None})
+                extra={'recommended': bool(x.get('isRecommended')), 'tags': x.get('tags') or None,
+                       'rating_source': f'facebook recommendation tag "{tag}"' if tag else None})
 
 
 def from_zola(x):

@@ -107,7 +107,7 @@ Options go in the query string: `embed.html?layout=grid&platform=google&limit=12
 | Attribute (JS embed: script tag or target element) | Query param (iframe / host page) | Values | Default |
 |---|---|---|---|
 | `data-layout` | `layout` | `carousel` (one scrolling row with arrows) or `grid` (all cards, wrapping) | `display.layout` in `data/config.json` (`carousel`) |
-| `data-platform` | `platform` | `all`, or a platform key from `data/config.json` (`google`, `yelp`, `zola`, `facebook`, `etsy`) | `all` |
+| `data-platform` | `platform` | `all`, or a platform key from `data/config.json` (`google`, `yelp`, `zola`, `facebook`) | `all` |
 | `data-limit` | `limit` | maximum number of cards (`0` = no limit) | `0` |
 | `data-base` | n/a | repo root URL, ending in `/` | worked out from the script URL |
 | `data-overflow` | n/a | `visible` lets the carousel arrows overhang the widget edge by 8px (the bare pages use this). By default the overhang is clipped so it can't cause horizontal page scroll | clipped |
@@ -133,7 +133,7 @@ The platform tabs still let visitors switch filters. The header's rating and rev
 | `display.font_timeout_ms` | how long to wait for the webfont before showing the fallback face |
 | `display.show_rating_only_reviews` | `false` (default): reviews with no text are counted in the header but get no card. `true`: they get a card with no text element |
 | `display.show_summary` | `true` (default): show `data/summary.json` as the first card in "All reviews"; `false`: never |
-| `schema.enabled`, `schema.type`, `schema.max_reviews`, `schema.extra` | JSON-LD built into `data/reviews/schema.json` and injected into the page: on/off, the `@type` (`LocalBusiness`; `Product` is what Elfsight uses), how many Review items, and extra properties merged into the entity (e.g. `address`, `telephone`, `image`) |
+| `schema.enabled`, `schema.type`, `schema.max_reviews`, `schema.extra` | JSON-LD built into `data/reviews/schema.json` and injected into the page: on/off, the `@type` (`LocalBusiness`; `Product` is what Elfsight uses), how many Review items (`0` = all, the default), and extra properties merged into the entity (e.g. `address`, `telephone`, `image`) |
 | `rating_labels` | words shown next to the score (`min` average → label) |
 | `strings` | every piece of visible or screen-reader text ("Write a review", "Based on", "View on {platform}", aria labels, …), with `{placeholders}` |
 | `avatars.initials_palette`, `avatars.initials_text_color` | colors of the generated initials avatars (used by the import script) |
@@ -172,7 +172,7 @@ The widget code (`assets/`, `index.html`, `embed.html`, `scripts/`, the workflow
    |---|---|
    | `data/config.json` | the business name and site, each platform's name, icon, write-a-review URL, and page URL, strings (any language), display options, and the initials-avatar palette |
    | `data/theme/theme.css` + `data/theme/fonts/` | the site's fonts (`@font-face`) and colors (`--rw-*` variables). Any family name works; list it first in `--rw-font` |
-   | `data/icons/` | one SVG per platform key (current set: Google, Yelp, Zola, Facebook, Etsy, plus social icons) |
+   | `data/icons/` | one SVG per platform key (current set: Google, Yelp, Zola, Facebook, plus social icons) |
    | `data/sources.json` | the platforms the business is listed on: `scrape_url` (what the pull script scrapes) and `review_page_url` (fallback link) per review platform, plus optional `featured_on_website_review_ids` |
    | `data/reviews/` | empty it (keep the folder) |
    | `data/summary.json` | delete it (no summary card) or write one for the new reviews |
@@ -181,7 +181,7 @@ The widget code (`assets/`, `index.html`, `embed.html`, `scripts/`, the workflow
 3. **Collect reviews:** run the [weekly pull](#weekly-pull-monitoring) with the `--all` flag, or add review files by hand. Then commit. The workflow rebuilds `data/reviews/index.json`.
 4. **Update the URLs** in this README (embed snippets, links).
 
-The importer understands Google, Yelp, Facebook, Zola, and Etsy scraper output. Any other platform works in the widget if it has an entry in `config.json`, an icon, and review files (added by hand, or with a small converter added to `scripts/import_reviews.py`).
+The importer understands Google, Yelp, Facebook, and Zola scraper output (plus an unused `--etsy` converter for `astravalabs/etsy-reviews-scraper`). Any other platform works in the widget if it has an entry in `config.json`, an icon, and review files (added by hand, or with a small converter added to `scripts/import_reviews.py`).
 
 ---
 
@@ -205,7 +205,7 @@ assets/                            GENERIC WIDGET CODE
 index.html, embed.html             bare widget pages (no chrome, transparent, noindex): both safe to iframe
 scripts/build-index.mjs            validates data/reviews/*.json, writes data/reviews/index.json + schema.json (Node, no dependencies)
 scripts/import_reviews.py          raw scraper output -> review files (new only by default) + avatar download
-scripts/pull_reviews.py            pull helper: Zola direct, Apify inputs/imports for Google/Yelp/Facebook/Etsy, build, summary check
+scripts/pull_reviews.py            pull helper: Zola direct, Apify inputs/imports for Google/Yelp/Facebook, build, summary check
 .github/workflows/build-index.yml  rebuilds and commits index.json + schema.json when data/reviews/, config.json or the build script change
 ```
 
@@ -221,7 +221,6 @@ A static site can't list a folder, so the widget reads the generated `data/revie
 | Yelp | 5 | 5.0 ★ · 5 reviews | https://www.yelp.com/biz/heather-wolfe-art-knoxville |
 | Zola | 5 | 5.0 ★ · 5 reviews | https://www.zola.com/wedding-vendors/wedding-extras/heather-wolfe-art-live-painting |
 | Facebook | 9 | 100% recommend · 16 reviews (only 9 public without login) | https://www.facebook.com/HeatherWolfeArt/reviews |
-| Etsy | 3 (one rating-only, 2009) | 5.0 ★ · 3 shop reviews | https://www.etsy.com/shop/heatherwolfeart#reviews |
 
 Every platform linked from heatherwolfeart.com, including social profiles with no review system, is listed in [`data/sources.json`](data/sources.json).
 
@@ -236,7 +235,8 @@ One file per review in `data/reviews/`:
   "reviewer_profile_url": "https://www.google.com/maps/contrib/…",  // Google / Facebook; null otherwise
   "reviewer_image": "data/images/reviewers/google-2026-10-05-kylee-m.jpg",  // downloaded copy (repo path)
   "reviewer_image_source_url": "https://lh3.googleusercontent.com/…",       // where it came from (may expire), or null
-  "rating": 5,                             // 1-5, or null for Facebook (recommend/not, no stars)
+  "rating": 5,                             // 1-5; null for Facebook unless Facebook shows a star value (see below)
+  "rating_source": "…",                    // only when the rating isn't a native star field (Facebook "5 stars" tag)
   "text": "full review text",              // complete; "" for rating-only reviews
   "date": "2026-10-05T20:19:50Z",          // ISO 8601, UTC
   "review_url": "https://www.google.com/maps/reviews/data=…",  // individual review link (Facebook: post URL)
@@ -248,8 +248,7 @@ One file per review in `data/reviews/`:
   "recommended": true,                     // Facebook
   "title": "…",                            // Zola review title
   "review_image_ids": ["…"],               // Zola photo ids
-  "review_image_urls": ["…"],              // Google / Yelp / Etsy review photos
-  "item_reviewed": { "title": "…", "listing_id": "…", "url": "https://www.etsy.com/listing/…" },  // Etsy listing
+  "review_image_urls": ["…"],              // Google / Yelp review photos
   "reviewer_review_count": 3,              // Google / Yelp
   "reviewer_is_local_guide": true,         // Google
   "language": "en",
@@ -258,7 +257,9 @@ One file per review in `data/reviews/`:
 }
 ```
 
-`review_url` is the individual review link where the platform provides one: Google review links, Yelp `?hrid=` links, and Facebook post URLs. Zola and Etsy have no per-review URL, so they store the storefront's / shop's reviews section. Etsy gives only a calendar day, stored at 12:00 UTC. Only Etsy buyers can review, so the Etsy "Write a review" link opens the shop's reviews.
+`review_url` is the individual review link where the platform provides one: Google review links, Yelp `?hrid=` links, and Facebook post URLs. Zola has no per-review URL, so it stores the storefront's reviews section.
+
+**Facebook ratings:** Facebook replaced star ratings with recommend / don't recommend in 2018, and today it renders every one of these reviews, including the 2016-2017 ones, as "<name> recommends Heather Wolfe Art", with no star value in the page data, the public post pages, or any scraper output checked (`apify/facebook-reviews-scraper`, `patient_discovery/facebook-page-reviews`; others in the Apify store return the same `recommend` flag). A rating is stored only when Facebook itself shows one: Jessica V.'s review (2018-01-23) carries the recommendation tag **"5 stars"**, so it has `rating: 5` and `rating_source`. The importer does this automatically for a tag of the form "N stars". A rating is never inferred from "recommends". Old star values, if Facebook still keeps them, are visible only to the page owner (Graph API `/{page-id}/ratings` with a Page access token).
 
 `data/reviews/index.json` holds every full record plus `file` (source path) and `has_text`, sorted newest first. It also has a `summary` with counts and average ratings per platform.
 
@@ -274,7 +275,7 @@ One file per review in `data/reviews/`:
 
 The *Build reviews index* Action then validates every file, commits a refreshed `data/reviews/index.json`, and Pages redeploys (about a minute). To check locally, run `node scripts/build-index.mjs`.
 
-**From scraper output:** `python3 scripts/import_reviews.py --google g.json --yelp y.json --facebook f.json --zola z.json --etsy e.json` writes files for **new** reviews only. Add `--update` to also refresh existing ones; they keep their file names, avatars, and `collected_at`. Avatars are downloaded (never hotlinked). If a platform has no photo, an initials SVG is generated in the `config.json` palette.
+**From scraper output:** `python3 scripts/import_reviews.py --google g.json --yelp y.json --facebook f.json --zola z.json` writes files for **new** reviews only. Add `--update` to also refresh existing ones; they keep their file names, avatars, and `collected_at`. Avatars are downloaded (never hotlinked). If a platform has no photo, an initials SVG is generated in the `config.json` palette.
 
 ---
 
@@ -288,18 +289,16 @@ Free, direct methods are used wherever they work. Apify is used only where they 
 | Google | Apify | `compass/Google-Maps-Reviews-Scraper` | `{"startUrls":[{"url":"https://www.google.com/maps?cid=8046363929124098631"}],"maxReviews":500,"reviewsSort":"newest","language":"en","reviewsOrigin":"all","personalData":true,"reviewsStartDate":"<YYYY-MM-DD>"}` |
 | Yelp | Apify | `web_wanderer/yelp-reviews-scraper` | `{"biz_urls":["https://www.yelp.com/biz/heather-wolfe-art-knoxville"],"reviews_limit":200,"reviews_sort":"newest","include_personal_data":true,"date_from":"<YYYY-MM-DD>"}` |
 | Facebook | Apify | `apify/facebook-reviews-scraper` | `{"startUrls":[{"url":"https://www.facebook.com/HeatherWolfeArt/reviews"}],"resultsLimit":100,"onlyReviewsNewerThan":"<YYYY-MM-DD>"}` |
-| Etsy | Apify | `astravalabs/etsy-reviews-scraper` | `{"shops":["https://www.etsy.com/shop/heatherwolfeart"],"reviewsSort":"Recency","maxReviews":25,"maxTotalResults":25}` (no date filter: newest 25; `--all` = full history) |
 
-Why Apify is needed for those four:
+Why Apify is needed for those three:
 
 - Logged-out Google Maps shows a "limited view" with no reviews.
 - yelp.com returns 403.
 - Facebook lists only a few recommendations without a login.
-- etsy.com answers DataDome 403s to scripts and headless browsers; the Etsy Open API needs an approved key. (`reviewly/etsy-shop-reviews-scraper` was tried first and timed out at the bot wall.)
 
 `personalData` / `include_personal_data` are needed to get names, avatars, and profile links.
 
-The date window starts 30 days before the newest stored review on that platform, so a weekly run pays for only a few reviews (Google ≈ $0.0006/review, Yelp ≈ $0.0003, Facebook ≈ $0.0025, Etsy ≈ $0.004; the whole Etsy shop is 3 reviews, about $0.01). Each run is capped with `maxTotalChargeUsd`.
+The date window starts 30 days before the newest stored review on that platform, so a weekly run pays for only a few reviews (Google ≈ $0.0006/review, Yelp ≈ $0.0003, Facebook ≈ $0.0025). Each run is capped with `maxTotalChargeUsd`.
 
 **Weekly run.** Monitoring isn't a GitHub Actions job. It's a scheduled run on the Bristlecone box that uses the Apify connector:
 
@@ -308,7 +307,7 @@ cd heather-wolfe-art-reviews && git pull
 python3 scripts/pull_reviews.py --print-inputs
 #   -> for each platform: actor id + input (date window = newest stored review - 30 days) + cost cap
 #   run each actor with that input (Apify connector call-actor, maxTotalChargeUsd 0.25),
-#   save the dataset items as .pull/google.json, .pull/yelp.json, .pull/facebook.json, .pull/etsy.json
+#   save the dataset items as .pull/google.json, .pull/yelp.json, .pull/facebook.json
 python3 scripts/pull_reviews.py --from-raw   # pulls Zola directly, imports NEW reviews only, rebuilds index + schema
 #   if it prints "SUMMARY STALE": rewrite data/summary.json from .pull/summary_input.txt (see "AI summary card")
 git add data/reviews data/images/reviewers data/summary.json && git commit -m "reviews: add new reviews $(date +%F)" && git push
@@ -334,11 +333,11 @@ The order is deterministic, so it's the same on every load:
   - For each slot, the widget takes the newest remaining review.
   - If that review's platform matches the previous **2** cards, it takes the newest remaining review from a *different* platform instead.
   - It only does that if the other review is at most **~18 months (548 days)** older than the newest candidate. Otherwise it takes the newest review anyway.
-  - Today the first 10 review cards run Google, Google, Etsy, Google, Google, Zola, Google, Google, Zola, Google.
+  - Today the first 10 review cards run Google, Google, Zola, repeated.
 - In "All reviews" the [AI summary card](#ai-summary-card) comes first; it isn't a review and isn't counted (`data-limit` counts review cards only).
 - **Single-platform filter** (e.g. Yelp): newest first.
 - Ties are broken by `id`.
-- Rating-only reviews (empty or whitespace-only text) never become cards, but they still count in the header (79 reviews, 73 review cards). With `display.show_rating_only_reviews: true` they get cards with no text element.
+- Rating-only reviews (empty or whitespace-only text) never become cards, but they still count in the header (76 reviews, 71 review cards). With `display.show_rating_only_reviews: true` they get cards with no text element.
 
 Both numbers are settings: `display.max_same_platform_run` and `display.diversity_window_days` in `data/config.json`.
 
@@ -354,7 +353,7 @@ It lives in `data/summary.json`:
 {
   "text": "2-4 sentences",
   "generated_at": "2026-10-06T01:40:00Z",
-  "review_count": 79,          // reviews in index.json when it was written (staleness check)
+  "review_count": 76,          // reviews in index.json when it was written (staleness check)
   "reviews_with_text": 73,
   "generated_by": "…",
   "notes": "…"
@@ -376,10 +375,10 @@ Rules for the text: only themes that actually appear in the reviews, no invented
 What's in it:
 
 - One entity, `@type` from `schema.type` (default `LocalBusiness`), with `@id` `<website>#business`, `name` and `url` from `config.business`, plus anything in `schema.extra` (e.g. `address`, `telephone`, `image`, `priceRange`).
-- `aggregateRating`: `ratingValue` (one decimal), `bestRating` 5, `worstRating` 1, `ratingCount` and `reviewCount` = every review **with a star rating** on every platform, rating-only reviews included (today 70: 5.0).
-- `review`: the first `schema.max_reviews` (10) star-rated review cards in the same order as "All reviews", each with `author` (`Person`, the displayed name, e.g. "Kylee M."), `datePublished`, `reviewRating` (`Rating` 1-5), `reviewBody` (the same snippet the card shows), and `publisher` (`Organization`, the platform name).
+- `aggregateRating`: `ratingValue` (one decimal), `bestRating` 5, `worstRating` 1, `ratingCount` and `reviewCount` = every review **with a 1-5 rating** on every platform, rating-only reviews included (today 68: 5.0).
+- `review`: **every** review (`schema.max_reviews: 0`; a number caps it), today 76: the text reviews in the same order as the "All reviews" cards, then the rating-only / empty ones newest first. Each has `author` (`Person`, the displayed name, e.g. "Kylee M."), `datePublished`, `publisher` (`Organization`, the platform name), plus `reviewRating` (`Rating` 1-5) when the review has a rating and `reviewBody` (the same snippet the card shows) when it has text.
 
-**Facebook recommendations are left out of both** the rating and the Review list: they're recommend / don't-recommend with no 1-5 value, Google requires `reviewRating` on each Review, and counting them as 5 stars would inflate the rating. That's why the widget header says 79 reviews and the JSON-LD says 70. The AI summary is never included.
+**Unrated reviews** (8 Facebook recommendations) are listed as `Review`s without `reviewRating` and are **left out of the AggregateRating** count and average: they have no 1-5 value, and counting a "recommends" as 5 stars would invent ratings and inflate the score. That's why the widget header says 76 reviews and the AggregateRating says 68. 5 reviews have no text (3 Google rating-only, 2 empty Facebook recommendations) and so no `reviewBody`. schema.org accepts all of these; Google's review-snippet rules want `reviewRating` on each Review, so its Rich Results Test may warn about the unrated ones (another reason not to expect stars, below). The AI summary is never included.
 
 **How this compares to Elfsight:** Elfsight's review widgets inject one combined JSON-LD snippet per widget with `@type: Product` + `aggregateRating` (+ reviews), because Product is the type Google still shows review stars for. They also note Google ignores review snippets on home pages. Set `schema.type` to `Product` to copy that exactly.
 
@@ -449,4 +448,4 @@ The "Write a review" button goes to the active platform's `write_url`; on the "A
 
 ## Credits
 
-Platform logos: **Google** is Google's multi-color Maps pin (the 2020 Google Maps icon, via Wikimedia Commons); **Zola** is Zola's double-heart mark in their "marine" #183b54, from zola.com's own asset CDN (turned white on the active tab); **Etsy** is the orange (#F45800) square with the "E" from the official Etsy wordmark; **Yelp** and **Facebook** are from [Simple Icons](https://simpleicons.org/) (CC0 1.0). All marks belong to their owners and are used only to identify where each review was posted. The brand colors (#204a60, #3c4e58, #85a0ad, #bfcdd4, #e2edf2, #999) and the Inter typeface ([OFL](data/theme/fonts/OFL.txt)) come from heatherwolfeart.com. Review content belongs to its authors and is shown with a link back to the original.
+Platform logos: **Google** is Google's multi-color Maps pin (the 2020 Google Maps icon, via Wikimedia Commons); **Zola** is Zola's double-heart mark in their "marine" #183b54, from zola.com's own asset CDN (turned white on the active tab); **Yelp** and **Facebook** are from [Simple Icons](https://simpleicons.org/) (CC0 1.0). All marks belong to their owners and are used only to identify where each review was posted. The brand colors (#204a60, #3c4e58, #85a0ad, #bfcdd4, #e2edf2, #999) and the Inter typeface ([OFL](data/theme/fonts/OFL.txt)) come from heatherwolfeart.com. Review content belongs to its authors and is shown with a link back to the original.

@@ -56,12 +56,13 @@ console.log(`data/reviews/index.json: ${reviews.length} reviews`, JSON.stringify
 
 // ---------------- schema.org JSON-LD ----------------
 // Mirrors the widget's presentation helpers (assets/js/reviews-widget.js displayName/snippet) so the markup
-// matches what visitors see. Facebook "recommendations" have no 1-5 rating, so they are left out of both the
-// AggregateRating and the Review list (Google requires reviewRating on each Review); rating-only star reviews
-// (no text) DO count in the AggregateRating.
+// matches what visitors see. Every review is listed (schema.max_reviews 0 = all): text reviews in the widget's
+// "All reviews" card order, then rating-only / empty reviews newest first. A review without a 1-5 rating
+// (Facebook "recommends") is a Review with no reviewRating and is left out of the AggregateRating; a review
+// without text has no reviewBody. The AI summary (data/summary.json) is never included.
 const config = JSON.parse(await readFile(path.join(root, 'data', 'config.json'), 'utf8'));
 const D = { snippet_chars: 160, abbreviate_last_names: true, ...(config.display || {}) };
-const SC = { enabled: true, type: 'LocalBusiness', max_reviews: 10, ...(config.schema || {}) };
+const SC = { enabled: true, type: 'LocalBusiness', max_reviews: 0, ...(config.schema || {}) };
 const isUpper = w => w === w.toUpperCase() && w !== w.toLowerCase();
 const isLower = w => w === w.toLowerCase() && w !== w.toUpperCase();
 const cap = w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
@@ -113,6 +114,9 @@ function diverseOrder(list) {
 }
 const withText = reviews.filter(r => r.has_text && snippet(r.text, r.reviewer_name));
 const cardOrder = diverseOrder(withText);
+const textIds = new Set(withText.map(r => r.id));
+const allOrder = [...cardOrder, ...reviews.filter(r => !textIds.has(r.id)).sort(byNewest)];
+const listed = SC.max_reviews > 0 ? allOrder.slice(0, SC.max_reviews) : allOrder;
 const starred = reviews.filter(r => typeof r.rating === 'number');
 const pname = p => (config.platforms?.[p]?.name) || p;
 const biz = config.business || {};
@@ -131,14 +135,14 @@ const schema = SC.enabled && starred.length ? {
     ratingCount: starred.length,
     reviewCount: starred.length,
   },
-  review: cardOrder.filter(r => typeof r.rating === 'number').slice(0, SC.max_reviews).map(r => ({
+  review: listed.map(r => ({
     '@type': 'Review',
     author: { '@type': 'Person', name: displayName(r.reviewer_name) },
     datePublished: r.date.slice(0, 10),
-    reviewRating: { '@type': 'Rating', ratingValue: r.rating, bestRating: 5, worstRating: 1 },
-    reviewBody: snippet(r.text, r.reviewer_name),
+    ...(typeof r.rating === 'number' ? { reviewRating: { '@type': 'Rating', ratingValue: r.rating, bestRating: 5, worstRating: 1 } } : {}),
+    ...(textIds.has(r.id) ? { reviewBody: snippet(r.text, r.reviewer_name) } : {}),
     publisher: { '@type': 'Organization', name: pname(r.platform) },
   })),
 } : null;
 await writeFile(path.join(dir, 'schema.json'), JSON.stringify(schema, null, 2) + '\n');
-console.log(`data/reviews/schema.json: ${schema ? `${schema['@type']}, rating ${schema.aggregateRating.ratingValue} from ${schema.aggregateRating.ratingCount} star ratings, ${schema.review.length} Review items` : 'disabled'}`);
+console.log(`data/reviews/schema.json: ${schema ? `${schema['@type']}, rating ${schema.aggregateRating.ratingValue} from ${schema.aggregateRating.ratingCount} star ratings, ${schema.review.length} Review items (${schema.review.filter(r => !r.reviewRating).length} without rating, ${schema.review.filter(r => !r.reviewBody).length} without text)` : 'disabled'}`);

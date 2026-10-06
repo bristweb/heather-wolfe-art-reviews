@@ -33,13 +33,6 @@
       "write_url": "https://www.facebook.com/HeatherWolfeArt/reviews",
       "page_url": "https://www.facebook.com/HeatherWolfeArt/reviews",
       "card_link": "page"
-    },
-    "etsy": {
-      "name": "Etsy",
-      "icon": "data/icons/etsy.svg",
-      "write_url": "https://www.etsy.com/shop/heatherwolfeart#reviews",
-      "page_url": "https://www.etsy.com/shop/heatherwolfeart#reviews",
-      "card_link": "review"
     }
   },
   "display": {
@@ -57,7 +50,7 @@
   "schema": {
     "enabled": true,
     "type": "LocalBusiness",
-    "max_reviews": 10
+    "max_reviews": 0
   },
   "rating_labels": [
     { "min": 4.75, "label": "Excellent" },

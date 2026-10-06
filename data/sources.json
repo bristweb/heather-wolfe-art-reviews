@@ -55,21 +55,8 @@
       "scrape_url": "https://www.facebook.com/HeatherWolfeArt/reviews",
       "reported_rating": "100% recommend",
       "reported_count": 16,
-      "rating_note": "Facebook uses recommend / don't recommend, not stars; `rating` is null for these reviews. Only 9 of 16 are publicly visible without a login.",
+      "rating_note": "Facebook shows recommend / don't recommend, not stars, on every review here (even 2016-2017 ones are rendered as \"<name> recommends Heather Wolfe Art\"). `rating` stays null unless Facebook itself shows a star value: the only one is Jessica V. (2018-01-23), whose review carries the recommendation tag \"5 stars\" (stored as rating 5, rating_source noted). Only 9 of 16 reviews are publicly visible without a login. Checked 2026-10-05: apify/facebook-reviews-scraper, patient_discovery/facebook-page-reviews and each review's public post page.",
       "icon": "data/icons/facebook.svg"
-    },
-    {
-      "platform": "etsy",
-      "name": "Etsy",
-      "reviews": true,
-      "linked_url": "https://heatherwolfeart.etsy.com",
-      "review_page_url": "https://www.etsy.com/shop/heatherwolfeart#reviews",
-      "scrape_url": "https://www.etsy.com/shop/heatherwolfeart",
-      "shop_id": 5453283,
-      "reported_rating": 5.0,
-      "reported_count": 3,
-      "icon": "data/icons/etsy.svg",
-      "note": "Shop (product) reviews. etsy.com blocks direct automated fetches (DataDome HTTP 403), so reviews come from the Apify actor astravalabs/etsy-reviews-scraper (~$0.004/review). reported_* = what that run found on 2026-10-05 (3 reviews, all 5 stars, one rating-only from 2009). Only buyers can leave Etsy reviews, so the widget's 'write' link opens the shop's reviews."
     },
     {
       "platform": "instagram",

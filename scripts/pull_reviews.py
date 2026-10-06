@@ -2,15 +2,13 @@
 """Weekly monitor: fetch recent reviews from every platform, add only NEW ones, rebuild the manifest.
 
   python3 scripts/pull_reviews.py --print-inputs        # Apify actor inputs with date windows (JSON)
-  python3 scripts/pull_reviews.py --from-raw            # Zola direct + import .pull/{google,yelp,facebook,etsy}.json
+  python3 scripts/pull_reviews.py --from-raw            # Zola direct + import .pull/{google,yelp,facebook}.json
   APIFY_TOKEN=... python3 scripts/pull_reviews.py       # Zola direct + run the actors via the Apify REST API
 
 * Zola     -> direct & free: storefront HTML, reviews read from the embedded __NEXT_DATA__ JSON.
 * Google   -> Apify `compass/Google-Maps-Reviews-Scraper` (logged-out Google Maps shows no reviews).
 * Yelp     -> Apify `web_wanderer/yelp-reviews-scraper`   (yelp.com answers 403 to direct fetches).
 * Facebook -> Apify `apify/facebook-reviews-scraper`      (reviews need a login to list directly).
-* Etsy     -> Apify `astravalabs/etsy-reviews-scraper`    (etsy.com answers DataDome 403s to direct fetches;
-              no date filter, so it asks for the newest 25 reviews, or the full history with --all).
 Apify is used only where the free/direct method fails. Without APIFY_TOKEN only Zola is pulled.
 Each Apify run asks only for reviews newer than (latest stored review on that platform - since-days),
 and is capped with maxTotalChargeUsd. --all ignores the date window (full re-pull).
@@ -42,9 +40,6 @@ ACTORS = {
     'facebook': ('apify~facebook-reviews-scraper', lambda since: {
         'startUrls': [{'url': SCRAPE['facebook']}],
         'resultsLimit': 100, **({'onlyReviewsNewerThan': since} if since else {})}),
-    'etsy': ('astravalabs~etsy-reviews-scraper', lambda since: {
-        'shops': [SCRAPE['etsy']], 'reviewsSort': 'Recency',
-        'maxReviews': 25 if since else 0, 'maxTotalResults': 25 if since else 500}),
 }
 ACTORS = {k: v for k, v in ACTORS.items() if SCRAPE.get(k)}  # only platforms this site lists in sources.json
 
