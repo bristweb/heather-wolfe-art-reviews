@@ -6,16 +6,25 @@
  * The data carries full records; presentation only: reviewer names are shown as first name + last initial and
  * review text is clipped to a short snippet (both computed here at render time).
  *
- * Usage (JS embed):
- *   <div class="reviews-widget" data-layout="carousel|grid" data-platform="all|<platform>" data-limit="0"></div>
- *   <script src="https://<host>/<repo>/assets/js/reviews-widget.js" defer></script>
+ * Usage (JS embed) — one script tag renders the widget right where the tag is (defer/async are fine):
+ *   <script src="https://<host>/<repo>/assets/js/reviews-widget.js" data-layout="carousel|grid"
+ *           data-platform="all|<platform>" data-limit="0" defer></script>
+ * Explicit target instead of in place:
+ *   data-target="#some-id" on the script tag, or element(s) with a data-reviews-widget attribute (their own
+ *   data-layout/-platform/-limit override the script's). If the page has unclaimed [data-reviews-widget]
+ *   elements, the script fills those instead of rendering in place. A script inside <head> with no target
+ *   renders at the end of <body>.
+ * Each script tag renders its own widget; config, reviews and CSS are fetched once per page.
  * The script finds the repo root from its own URL (override with data-base="https://.../"), loads the CSS
  * (assets/css/reviews-widget.css + data/theme/theme.css) if the page doesn't already have it, then renders.
  * URL params on the host page (?layout=grid&platform=google&limit=12) override data attributes.
  */
 (function () {
-  const SCRIPT = document.currentScript && document.currentScript.src;
-  const DEFAULT_BASE = SCRIPT ? new URL('../../', SCRIPT).href : './';
+  // Captured at execution time (works for plain, defer and async scripts; null only for ES modules).
+  const ME = document.currentScript;
+  const DEFAULT_BASE = ME && ME.src ? new URL('../../', ME.src).href : './';
+  // Shared across every copy of this script on the page, so data and CSS load once.
+  const SHARED = (window.__reviewsWidget ??= { css: {}, loads: {} });
   const STRINGS = {
     loading: 'Loading reviews…', unavailable: 'Reviews are unavailable right now.',
     tabs_aria: 'Filter reviews by platform', tab_all: 'All', tab_all_suffix: ' reviews',
@@ -39,7 +48,7 @@
 
   // ---- loading helpers ----
   const fetchJson = url => fetch(url, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error(r.status + ' ' + url); return r.json(); });
-  const cssLoads = {};
+  const cssLoads = SHARED.css;
   // Adds <link rel=stylesheet> unless the page already has it; resolves once it's applied (or failed).
   function ensureCss(href) {
     if (cssLoads[href]) return cssLoads[href];
@@ -57,7 +66,7 @@
       link.addEventListener('error', res, { once: true });
     }));
   }
-  const loads = {};
+  const loads = SHARED.loads;
   // One fetch of config + reviews + CSS per base, shared by every widget on the page.
   function load(base) {
     return (loads[base] ??= Promise.all([
@@ -80,9 +89,10 @@
     ]);
   }
 
-  async function mount(el) {
+  // opts: data-* options (layout, platform, limit, base) from the script tag and/or the target element.
+  async function mount(el, opts) {
     const q = new URLSearchParams(location.search);
-    let base = el.dataset.base || DEFAULT_BASE;
+    let base = opts.base || DEFAULT_BASE;
     if (!base.endsWith('/')) base += '/';
     el.classList.add('rw-root');
     el.style.opacity = '0'; // hidden until CSS, fonts and the first layout are ready (CSS takes over afterwards)
@@ -106,9 +116,9 @@
     const PLATFORMS = config.platforms || {};
     const RL = (config.rating_labels || RATING_LABELS).slice().sort((a, b) => b.min - a.min);
     const cfg = {
-      layout: q.get('layout') || el.dataset.layout || D.layout,
-      platform: q.get('platform') || el.dataset.platform || 'all',
-      limit: +(q.get('limit') || el.dataset.limit || 0),
+      layout: q.get('layout') || opts.layout || D.layout,
+      platform: q.get('platform') || opts.platform || 'all',
+      limit: +(q.get('limit') || opts.limit || 0),
     };
     el.classList.add('rw-layout-' + cfg.layout);
     el.innerHTML = `<div class="rw-loading">${esc(S.loading)}</div>`;
@@ -275,6 +285,36 @@
     }
   }
 
-  const start = () => document.querySelectorAll('.reviews-widget').forEach(mount);
+  // ---- where to render (no class-name selectors) ----
+  const OPTION_KEYS = ['layout', 'platform', 'limit', 'base'];
+  const pick = ds => Object.fromEntries(OPTION_KEYS.filter(k => ds && ds[k] != null && ds[k] !== '').map(k => [k, ds[k]]));
+  const scriptOpts = pick(ME && ME.dataset);
+  const claim = el => {
+    if (el.__reviewsWidget) return false;
+    el.__reviewsWidget = true;
+    return true;
+  };
+  function start() {
+    const target = ME && ME.dataset.target;
+    if (target) { // explicit target on the script tag
+      const el = document.querySelector(target);
+      if (!el) return console.warn('[reviews-widget] data-target not found:', target);
+      if (claim(el)) mount(el, { ...scriptOpts, ...pick(el.dataset) });
+      return;
+    }
+    const marked = [...document.querySelectorAll('[data-reviews-widget]')].filter(claim);
+    if (marked.length) { // element targets: <div data-reviews-widget data-layout="grid"></div>
+      marked.forEach(el => mount(el, { ...scriptOpts, ...pick(el.dataset) }));
+      return;
+    }
+    // default: render in place, right before this script tag
+    const el = document.createElement('div');
+    claim(el);
+    if (ME && ME.parentNode && !(document.head && document.head.contains(ME))) ME.parentNode.insertBefore(el, ME);
+    else document.body.appendChild(el);
+    mount(el, scriptOpts);
+  }
+  // Plain/async scripts can run while the page is still parsing; wait so later [data-reviews-widget] targets
+  // exist. Deferred scripts run after parsing, so they render at once.
   document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', start) : start();
 })();

@@ -31,30 +31,48 @@ The code is generic. Everything specific to this business (reviews, platforms, l
 
 ### JavaScript embed (preferred)
 
-Paste this where the widget should appear:
+Paste this one tag where the widget should appear:
 
 ```html
-<div class="reviews-widget"></div>
 <script src="https://bristweb.github.io/heather-wolfe-art-reviews/assets/js/reviews-widget.js" defer></script>
 ```
 
-That's all. The script works out the repo address from its own URL. It then loads the stylesheets (`assets/css/reviews-widget.css` and `data/theme/theme.css`), the settings (`data/config.json`) and the reviews (`data/reviews/index.json`), and renders into the `div`.
+The widget renders right where the tag is. The script works out the repo address from its own URL. It then loads the stylesheets (`assets/css/reviews-widget.css` and `data/theme/theme.css`), the settings (`data/config.json`) and the reviews (`data/reviews/index.json`), and inserts the widget immediately before the `<script>` element. `defer`, `async`, or neither all work.
+
+Options go on the script tag:
+
+```html
+<script src="https://bristweb.github.io/heather-wolfe-art-reviews/assets/js/reviews-widget.js" defer
+        data-layout="grid" data-platform="google" data-limit="12"></script>
+```
 
 - The widget renders directly in your page, so it sizes itself naturally and needs no resize script.
 - It stays invisible until its font and first layout are ready, then fades in once, with no font swap or layout jump.
-- You can put several widgets on one page (for example a grid of Zola reviews and a carousel of everything). They share a single download.
-- The widget's classes all start with `rw-`, its font has its own family name, and a small reset keeps common host styles (line height, image borders, text alignment) from leaking in.
+- **Several widgets on one page:** use one script tag per widget, each in its own spot with its own options (for example a grid of Zola reviews and a carousel of the latest six). The data and CSS are downloaded only once.
+- The widget's internal classes all start with `rw-`, its font has its own family name, and a small reset keeps common host styles (line height, image borders, text alignment) from leaking in.
 
-With options:
+**Rendering somewhere other than the script's position** (optional), for example when the script has to go in `<head>` or a site-wide footer:
 
 ```html
-<div class="reviews-widget" data-layout="grid" data-platform="google" data-limit="12"></div>
+<!-- a) point the script at an element -->
+<script src="https://bristweb.github.io/heather-wolfe-art-reviews/assets/js/reviews-widget.js" defer data-target="#reviews"></script>
+<div id="reviews"></div>
+
+<!-- b) or mark one or more elements; each can carry its own options -->
 <script src="https://bristweb.github.io/heather-wolfe-art-reviews/assets/js/reviews-widget.js" defer></script>
+<div data-reviews-widget data-layout="grid" data-platform="zola"></div>
+<div data-reviews-widget data-limit="6"></div>
 ```
 
-The available options are listed under [Options and customization](#options-and-customization). Include the `<script>` once per page, even with several widgets.
+How the script decides where to render:
 
-If your site builder loads scripts in a way that hides the script's own URL (rare, e.g. as an ES module), add `data-base="https://bristweb.github.io/heather-wolfe-art-reviews/"` to the `div`.
+1. If it has `data-target`, it renders into that element (any CSS selector). The element's own `data-` options override the script's.
+2. Otherwise, if the page has `[data-reviews-widget]` elements that no script has filled yet, it fills all of them. Their own `data-` options override the script's.
+3. Otherwise, it renders in place, just before its own tag. A script placed in `<head>` with no target renders at the end of `<body>`.
+
+Mount points are chosen only by position, `data-target`, or the `data-reviews-widget` attribute, never by class name. Don't mix in-place tags and `data-reviews-widget` elements on one page; if you need both, give each script a `data-target`.
+
+If your site builder loads scripts in a way that hides the script's own URL (rare, e.g. as an ES module), add `data-base="https://bristweb.github.io/heather-wolfe-art-reviews/"` to the script tag.
 
 ### Iframe embed (alternative)
 
@@ -82,7 +100,7 @@ Options go in the query string: `embed.html?layout=grid&platform=google&limit=12
 
 ### Per-embed options
 
-| Attribute (JS embed) | Query param (iframe / host page) | Values | Default |
+| Attribute (JS embed: script tag or target element) | Query param (iframe / host page) | Values | Default |
 |---|---|---|---|
 | `data-layout` | `layout` | `carousel` (one scrolling row with arrows) or `grid` (all cards, wrapping) | `display.layout` in `data/config.json` (`carousel`) |
 | `data-platform` | `platform` | `all`, or a platform key from `data/config.json` (`google`, `yelp`, `zola`, `facebook`) | `all` |
@@ -129,7 +147,7 @@ This file holds the `@font-face` rules (fonts in `data/theme/fonts/`) and CSS cu
 | `--rw-radius` | card and header corner radius | `14px` |
 | `--rw-max-width` | widget max width (centered) | `1200px` |
 
-On a page that already uses the JS embed you can also override any of these in your own CSS, e.g. `.reviews-widget{--rw-accent:#8a2be2}`.
+On a page that already uses the JS embed you can also override any of these in your own CSS, e.g. `html .rw-root{--rw-accent:#8a2be2}` (the `html` prefix makes it win over the theme file, which is loaded after your CSS).
 
 ---
 
@@ -348,7 +366,8 @@ The "Write a review" button goes to the active platform's `write_url`; on the "A
 
 ## Technical details
 
-- **Loading:** the script works out the repo root as `new URL('../../', document.currentScript.src)`, or uses `data-base`. In parallel it fetches `data/config.json` and `data/reviews/index.json` (`cache: no-cache`) and adds `<link>`s for `assets/css/reviews-widget.css` and `data/theme/theme.css`, unless the page already has them (`index.html` / `embed.html` include them in `<head>`). Everything is fetched once per page, however many widgets there are.
+- **Mounting:** each copy of the script captures its own `document.currentScript` when it runs, then picks `data-target`, unfilled `[data-reviews-widget]` elements, or a new `<div>` inserted before its own tag (see [the rules above](#javascript-embed-preferred)). A script that runs while the page is still parsing (plain or `async`) waits for `DOMContentLoaded`, so targets further down the page exist. Each element is filled only once.
+- **Loading:** the script works out the repo root as `new URL('../../', document.currentScript.src)`, or uses `data-base`. In parallel it fetches `data/config.json` and `data/reviews/index.json` (`cache: no-cache`) and adds `<link>`s for `assets/css/reviews-widget.css` and `data/theme/theme.css`, unless the page already has them. `index.html` / `embed.html` include them in `<head>` and use the same single script tag. Everything is fetched once per page, however many widgets or script tags there are (shared through `window.__reviewsWidget`).
 - **No flash:** the root starts at `opacity: 0`. The widget waits for the stylesheets, then for weights 400, 700, and italic 300 of the first family in `--rw-font`. That wait has a timeout of `display.font_timeout_ms`; after it, the theme's metric-matched fallback face is used. After the first layout the widget fades in over 0.18s (instantly with reduced motion). The fonts use `font-display: block`.
 - **Accessibility:** each card is a single `<a>` (new tab, `rel="noopener"`) with an aria label like "Read Kylee M.'s review on Google (opens in a new tab)". Nothing inside a card is interactive. The tabs are `role="tab"` buttons with counts in their labels, star ratings have text labels, and focus rings are visible. Cards have no shadows: hover lifts them 2px with an accent border, and focus shows a 3px accent outline.
 - **Iframe height:** inside an iframe the widget posts `{type: 'reviews-widget-height', height}` to the parent on render, resize, and tab change.
