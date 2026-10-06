@@ -128,6 +128,8 @@ One compact row: rating on the left, platform filter tabs in the middle, **Write
 
 ## Embedding on the website
 
+`index.html` and `embed.html` carry `<meta name="robots" content="noindex, nofollow, noarchive">` so search engines don't list them. This doesn't affect iframe embedding: the widget still works inside heatherwolfeart.com.
+
 **Option A, iframe (simplest, works in Framer's Embed component):**
 
 ```html
