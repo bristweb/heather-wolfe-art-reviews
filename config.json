@@ -5,7 +5,7 @@
   },
   "sources": {
     "checked_at": "2026-10-05",
-    "notes": "Every URL linked from the heatherwolfeart.com footer/home page. `platforms` are the review platforms, monitored weekly; `links` are social profiles with no review system. `reported_*` values are what the platform itself showed on checked_at. `scrape_url` is what the pull script feeds to the scraper (Zola: fetched directly); `page_url` doubles as the fallback review link when a scraped review has no individual URL."
+    "notes": "Every URL linked from the heatherwolfeart.com footer/home page. `platforms` are the review platforms, monitored by scripts/pull_reviews.py; `links` are social profiles with no review system. `reported_*` values are what the platform itself showed on checked_at. `scrape_url` is what scripts/pull_reviews.py feeds to the scraper (Zola: fetched directly); `page_url` doubles as the fallback review link when a scraped review has no individual URL."
   },
   "default_write_platform": "google",
   "platforms": {
