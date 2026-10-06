@@ -1,0 +1,9 @@
+# Checks config.json, reviews/<year>.json and images/reviewers/ with the shared validator
+# (https://github.com/bristweb/reviews-widget, scripts/validate.mjs).
+name: Validate reviews data
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  validate:
+    uses: bristweb/reviews-widget/.github/workflows/validate.yml@main
