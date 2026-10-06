@@ -138,7 +138,6 @@
     "unavailable": "Reviews are unavailable right now.",
     "tabs_aria": "Filter reviews by platform",
     "tab_all": "All",
-    "tab_all_suffix": " reviews",
     "tab_title": "{name}: {count} reviews",
     "tab_aria": "{name}, {count} reviews",
     "write_review": "Write a review",
