@@ -1,5 +1,6 @@
 /* Heather Wolfe Art reviews widget — static, no dependencies.
- * Shows reviewer display names (first name + last initial) and ~160-char snippets only;
+ * The data carries full records; presentation only: reviewer names are shown as first name + last
+ * initial and review text is clipped to a ~160-char snippet (both computed here at render time);
  * every card links to the original review on its platform.
  * Usage: <div class="hwa-reviews" data-layout="carousel|grid" data-platform="all|google|yelp|zola|facebook"
  *             data-limit="0" data-base="./"></div>
@@ -39,6 +40,41 @@
     return out;
   }
 
+  // ---- presentation helpers (data stays complete; only the display is abbreviated/clipped) ----
+  const isAllUpper = w => w === w.toUpperCase() && w !== w.toLowerCase();
+  const isAllLower = w => w === w.toLowerCase() && w !== w.toUpperCase();
+  const capitalize = w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+  // 'Jane Doe' -> 'Jane D.'; 'Mary Smith (Smith Studio)' -> 'Mary S.'; 'Ann And Bob C.' -> 'Ann & Bob C.'; 'JANE D.' -> 'Jane D.'
+  function displayName(name) {
+    const words = (name || '').replace(/\(.*?\)/g, ' ').trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return 'Anonymous';
+    const fix = w => (isAllUpper(w) || isAllLower(w) ? capitalize(w) : w);
+    if (words.length === 1) return fix(words[0]);
+    let first = words.slice(0, -1);
+    const last = words[words.length - 1];
+    if (!(first.length >= 3 && ['and', '&'].includes(first[1].toLowerCase()))) first = first.slice(0, 1);
+    first = first.map(w => (['and', '&'].includes(w.toLowerCase()) ? '&' : fix(w)));
+    return first.join(' ') + ' ' + last.charAt(0).toUpperCase() + '.';
+  }
+  const SNIPPET_CHARS = 160;
+  // First ~160 characters at a word boundary; the reviewer's own surname(s) shown as an initial.
+  function snippet(text, fullName) {
+    let t = (text || '').replace(/\s+/g, ' ').trim();
+    const words = (fullName || '').replace(/[()]/g, ' ').split(/\s+/).map(w => w.replace(/^[.,]+|[.,]+$/g, ''));
+    for (const w of words.slice(1)) {
+      if (w.length > 1 && !['and', '&'].includes(w.toLowerCase())) {
+        t = t.replace(new RegExp('\\b' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi'), w.charAt(0).toUpperCase() + '.');
+      }
+    }
+    const cps = Array.from(t);
+    if (cps.length <= SNIPPET_CHARS) return t;
+    let cut = cps.slice(0, SNIPPET_CHARS).join('');
+    if (cut.includes(' ')) cut = cut.slice(0, cut.lastIndexOf(' '));
+    return cut.replace(/[,.;:!?-]+$/, '') + '…';
+  }
+  // Card link: individual review URL, except Facebook (page reviews tab for now; post URLs are kept in the data).
+  const cardHref = r => (r.platform === 'facebook' ? PLATFORMS.facebook.page : r.review_url);
+
   async function mount(el) {
     const q = new URLSearchParams(location.search);
     const base = el.dataset.base || './';
@@ -62,7 +98,8 @@
       return;
     }
     const all = data.reviews;
-    const withText = all.filter(r => r.has_text && r.snippet);  // rating-only reviews never become cards
+    for (const r of all) { r.display_name = displayName(r.reviewer_name); r.snippet_text = snippet(r.text, r.reviewer_name); }
+    const withText = all.filter(r => r.snippet_text);  // rating-only reviews never become cards
     const newest = withText.slice().sort(byNewest);
     const allOrder = diverseOrder(withText);
     const present = Object.keys(PLATFORMS).filter(p => all.some(r => r.platform === p));
@@ -72,7 +109,7 @@
       const pool = active === 'all' ? all : all.filter(r => r.platform === active);
       const rated = pool.filter(r => typeof r.rating === 'number');
       const avg = rated.length ? rated.reduce((s, r) => s + r.rating, 0) / rated.length : 5;
-      // snippet only; full text is never shown. "All": newest first + gentle diversity; one platform: newest first.
+      // cards show the clipped snippet only. "All": newest first + gentle diversity; one platform: newest first.
       let shown = active === 'all' ? allOrder : newest.filter(r => r.platform === active);
       if (cfg.limit) shown = shown.slice(0, cfg.limit);
       const write = PLATFORMS[active === 'all' ? 'google' : active].write;
@@ -104,19 +141,19 @@
         const P = PLATFORMS[r.platform] || { name: r.platform };
         const rating = typeof r.rating === 'number' ? stars(r.rating)
           : `<span class="hwa-rec"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 9h3v9H2zM7 18h7.6a2 2 0 0 0 2-1.6l1.2-6A2 2 0 0 0 15.8 8H12V4.5A2.5 2.5 0 0 0 9.5 2L7 8z"/></svg>Recommends</span>`;
-        const aria = `Read ${r.reviewer_display_name}'s review on ${P.name} (opens in a new tab)`;
+        const aria = `Read ${r.display_name}'s review on ${P.name} (opens in a new tab)`;
         // The whole card is one link; nothing inside it is interactive (no nested links).
-        return `<a class="hwa-card" data-platform="${esc(r.platform)}" href="${esc(r.review_url)}" target="_blank" rel="noopener" aria-label="${esc(aria)}">
+        return `<a class="hwa-card" data-platform="${esc(r.platform)}" href="${esc(cardHref(r))}" target="_blank" rel="noopener" aria-label="${esc(aria)}">
           <div class="hwa-card-top">
             <img class="hwa-avatar" src="${base}${esc(r.reviewer_image)}" alt="" loading="lazy" width="44" height="44">
             <div class="hwa-who">
-              <div class="hwa-name">${esc(r.reviewer_display_name)}</div>
+              <div class="hwa-name">${esc(r.display_name)}</div>
               <time datetime="${esc(r.date)}">${fmtDate(r.date)}</time>
             </div>
             <img class="hwa-platform" src="${base}assets/icons/${esc(r.platform)}.svg" alt="">
           </div>
           ${rating}
-          <p class="hwa-text">${esc(r.snippet)}</p>
+          <p class="hwa-text">${esc(r.snippet_text)}</p>
           <span class="hwa-link" aria-hidden="true">View on ${esc(P.name)} <span class="hwa-arrow">→</span></span>
         </a>`;
       }).join('');

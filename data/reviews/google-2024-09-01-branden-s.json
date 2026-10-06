@@ -2,12 +2,21 @@
   "id": "google-18e2dc488c9d",
   "platform": "google",
   "platform_review_id": "ChdDSUhNMG9nS0VJQ0FnSUNILVBLNW1BRRAB",
-  "reviewer_display_name": "Branden S.",
+  "reviewer_name": "Branden Stein",
+  "reviewer_profile_url": "https://www.google.com/maps/contrib/116120444639976174631?hl=en",
   "reviewer_image": "data/images/reviewers/google-2024-09-01-branden-s.jpg",
+  "reviewer_image_source_url": "https://lh3.googleusercontent.com/a-/ALV-UjX-Wfyq7TAmHnkVTu1xutWiMVgYFL0Exc3d9n6DNh-h2giMCgICQQ=s1920-c-rp-mo-br100",
   "rating": 5,
-  "snippet": "Legendary photography",
+  "text": "Legendary photography",
   "date": "2024-09-01T02:54:36Z",
   "review_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNILVBLNW1BRRAB!2m1!1s0x0:0x6faa6d5cb0f55247!3m1!1s2@1:CIHM0ogKEICAgICH-PK5mAE%7C%7C?hl=en",
+  "owner_reply": {
+    "text": "Thank you Branden! I am so honored to have worked last nights wedding!! What a sweet and beautiful night! Thank you for leaving me a review!!",
+    "date": "2024-09-01T12:26:32Z"
+  },
   "collected_at": "2026-10-05T22:00:27Z",
-  "source": "direct"
+  "source": "direct",
+  "updated_at": "2026-10-06T00:09:42Z",
+  "reviewer_review_count": 2,
+  "language": "en"
 }

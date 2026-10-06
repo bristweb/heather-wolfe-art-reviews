@@ -2,12 +2,21 @@
   "id": "google-39a3e60a4b61",
   "platform": "google",
   "platform_review_id": "Ci9DQUlRQUNvZENodHljRjlvT21sVGJXdEZVVEpQUzJodVZuVkNWbXRXZURrMU1IYxAB",
-  "reviewer_display_name": "Gabrielle R.",
+  "reviewer_name": "Gabrielle Robinson",
+  "reviewer_profile_url": "https://www.google.com/maps/contrib/108035490530237617839?hl=en",
   "reviewer_image": "data/images/reviewers/google-2025-08-17-gabrielle-r.png",
+  "reviewer_image_source_url": "https://lh3.googleusercontent.com/a/ACg8ocIPq2uxvR6wJS0vHJ05PhRzxxn0BJerF9HAG2AXc4tHJVdI0f0=s1920-c-rp-mo-br100",
   "rating": 5,
-  "snippet": "Heather was absolutely amazing at our wedding! Watching her create a beautiful painting in real time was such a unique and special experience. She captured the…",
+  "text": "Heather was absolutely amazing at our wedding! Watching her create a beautiful painting in real time was such a unique and special experience. She captured the energy, joy, and love of the day perfectly, and our guests couldn’t stop talking about it. The painting ended up being one of everyone’s favorite parts of the celebration. Heather was professional, friendly, and made the whole process so enjoyable. We will treasure her artwork forever and cannot recommend her enough!",
   "date": "2025-08-17T21:04:09Z",
   "review_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT21sVGJXdEZVVEpQUzJodVZuVkNWbXRXZURrMU1IYxAB!2m1!1s0x0:0x6faa6d5cb0f55247!3m1!1s2@1:CAIQACodChtycF9oOmlTbWtFUTJPS2huVnVCVmtWeDk1MHc%7C%7C?hl=en",
+  "owner_reply": null,
   "collected_at": "2026-10-05T22:00:27Z",
-  "source": "direct"
+  "source": "direct",
+  "updated_at": "2026-10-06T00:09:42Z",
+  "reviewer_review_count": 7,
+  "review_image_urls": [
+    "https://lh3.googleusercontent.com/grass-cs/ACvplmOBYLdzB0p383u8JsLEmaT-CCeBwzjhLSXTnd5fdREVhCs6BFmjRjzztEg1ovTSw0kWDl7EgLjGCQ-csvpE-JuOWV7eTO0SDj111o6zu355wmdIqvozLIOJOstdt5eSCCd0Xgf6lBcMQq4W=k-no"
+  ],
+  "language": "en"
 }

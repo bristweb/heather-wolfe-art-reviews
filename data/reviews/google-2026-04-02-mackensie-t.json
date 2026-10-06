@@ -2,12 +2,24 @@
   "id": "google-005f575e73e1",
   "platform": "google",
   "platform_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2w5TlJXdFVMVEJ5YlcwemRVOU1UelpRVEdKdmVrRRAB",
-  "reviewer_display_name": "Mackensie T.",
+  "reviewer_name": "Mackensie Thomas",
+  "reviewer_profile_url": "https://www.google.com/maps/contrib/116815608473833147906?hl=en",
   "reviewer_image": "data/images/reviewers/google-2026-04-02-mackensie-t.png",
+  "reviewer_image_source_url": "https://lh3.googleusercontent.com/a/ACg8ocJoFQdb931cXf2IH91fKX0R_bdWxYu44Is64MAGtQy3DFBggA=s1920-c-rp-mo-br100",
   "rating": 5,
-  "snippet": "Having Heather paint our our wedding was an absolute highlight of our day. She was so kind and wonderful to work with from start to finish, making the entire…",
+  "text": "Having Heather paint our our wedding was an absolute highlight of our day. She was so kind and wonderful to work with from start to finish, making the entire experience seamless and enjoyable. Her talent is truly incredible...her work is insanely beautiful and exceeded all of our expectations.\n\nOur guests were just as captivated as we were, loving the opportunity to watch her bring our day to life throughout the evening. It added such a unique and memorable touch to the celebration and truly elevated our wedding to the next level.\n\nWe are beyond grateful to have this one-of-a-kind piece of art to remember our wedding day for the rest of our lives. Highly recommend!",
   "date": "2026-04-02T18:46:44Z",
   "review_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2w5TlJXdFVMVEJ5YlcwemRVOU1UelpRVEdKdmVrRRAB!2m1!1s0x0:0x6faa6d5cb0f55247!3m1!1s2@1:CAIQACodChtycF9oOl9NRWtULTBybW0zdU9MTzZQTGJvekE%7C%7C?hl=en",
+  "owner_reply": {
+    "text": "Thank you so so much Mackinsie!!! I absolutely loved working with you and it was a total joy to paint for all your guest!!! Thank you for all your kind words… this means so much to me!!💗💗",
+    "date": "2026-04-16T00:06:13Z"
+  },
   "collected_at": "2026-10-05T22:00:27Z",
-  "source": "direct"
+  "source": "direct",
+  "updated_at": "2026-10-06T00:09:42Z",
+  "reviewer_review_count": 10,
+  "review_image_urls": [
+    "https://lh3.googleusercontent.com/grass-cs/ACvplmObaELXOY8jVe-dT9rJASjXHsNKl0lvkGzRylWE0yimXmNfI7fg-fNzvqYSs7XMPRB1JUmpXLn-_qCvXr3uXbL5LYb8Ma0cZdlQ0EZnKjJLvIXfxjeoImByhuS-Ux0u5Y3JtlcWlcGlDUc=k-no"
+  ],
+  "language": "en"
 }

@@ -1,21 +1,16 @@
 #!/usr/bin/env node
 // Builds data/reviews/index.json from every data/reviews/*.json file (static manifest for the widget).
-// The manifest is deliberately minimal: display name (first name + last initial) and the
-// ~160-char snippet only. Per-review files must not contain full text, owner replies,
-// avatar source URLs, or reviewer profile URLs either (the repo is public); this script fails if they do.
+// The manifest carries the full review records (full name, full text, owner reply, URLs, ...) plus
+// `file` and `has_text`; the widget abbreviates last names and clips text at render time.
 // Usage: node scripts/build-index.mjs   (no dependencies)
 import { readdir, readFile, writeFile } from 'node:fs/promises';
-import path from 'node:path';
 import { existsSync } from 'node:fs';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dir = path.join(root, 'data', 'reviews');
-const required = ['id', 'platform', 'reviewer_display_name', 'reviewer_image', 'snippet', 'date', 'review_url', 'source'];
-// Fields copied into the public manifest (everything else stays in the per-review file).
-const PUBLIC = ['id', 'platform', 'reviewer_display_name', 'reviewer_image', 'rating', 'recommended',
-  'snippet', 'date', 'review_url', 'featured_on_website'];
-const NAME_RE = /^[^\s]+( & [^\s]+)?( [A-Z]\.)?$/;
+const required = ['id', 'platform', 'reviewer_name', 'reviewer_image', 'text', 'date', 'review_url', 'source'];
 
 const files = (await readdir(dir)).filter(f => f.endsWith('.json') && f !== 'index.json').sort();
 const reviews = [];
@@ -27,24 +22,16 @@ for (const f of files) {
   catch (e) { errors.push(`${f}: invalid JSON (${e.message})`); continue; }
   for (const k of required) if (r[k] === undefined) errors.push(`${f}: missing "${k}"`);
   if (r.rating !== null && r.rating !== undefined && !(r.rating >= 1 && r.rating <= 5)) errors.push(`${f}: rating must be 1-5 or null`);
-  for (const k of ['text', 'owner_response', 'reviewer_image_source_url'])
-    if (k in r) errors.push(`${f}: "${k}" must not be stored (snippet only, no identifying data)`);
-  if ((r.snippet || '').length > 170) errors.push(`${f}: snippet longer than 170 chars`);
-  if (/facebook\.com\/(?!HeatherWolfeArt)/i.test(r.review_url || '')) errors.push(`${f}: Facebook review_url must be the page's reviews tab, not a profile/post URL`);
+  if (r.date && Number.isNaN(Date.parse(r.date))) errors.push(`${f}: date is not ISO 8601`);
   if (r.reviewer_image && !existsSync(path.join(root, r.reviewer_image))) errors.push(`${f}: reviewer_image ${r.reviewer_image} not found`);
   if (r.reviewer_image && !r.reviewer_image.startsWith('data/images/reviewers/')) errors.push(`${f}: reviewer_image must live under data/images/reviewers/`);
-  if ('reviewer_name' in r) errors.push(`${f}: has "reviewer_name"; store only "reviewer_display_name" (first name + last initial)`);
-  if (r.reviewer_display_name && !NAME_RE.test(r.reviewer_display_name)) errors.push(`${f}: reviewer_display_name "${r.reviewer_display_name}" must look like "Kylee M."`);
   if (ids.has(r.id)) errors.push(`${f}: duplicate id ${r.id}`);
   ids.add(r.id);
-  const pub = { file: `data/reviews/${f}` };
-  for (const k of PUBLIC) if (r[k] !== undefined) pub[k] = r[k];
-  pub.has_text = Boolean((r.snippet || '').trim());
-  reviews.push(pub);
+  reviews.push({ file: `data/reviews/${f}`, ...r, has_text: Boolean((r.text || '').trim()) });
 }
 if (errors.length) { console.error(errors.join('\n')); process.exit(1); }
 
-reviews.sort((a, b) => b.date.localeCompare(a.date));
+reviews.sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id));
 const platforms = {};
 for (const r of reviews) {
   const p = (platforms[r.platform] ??= { count: 0, rated: 0, sum: 0 });

@@ -2,12 +2,26 @@
   "id": "google-db7a2f39c2ef",
   "platform": "google",
   "platform_review_id": "ChdDSUhNMG9nS0VJQ0FnSURocjZYWTdBRRAB",
-  "reviewer_display_name": "Brynne K.",
+  "reviewer_name": "Brynne Koehmstedt",
+  "reviewer_profile_url": "https://www.google.com/maps/contrib/115793702916125722394?hl=en",
   "reviewer_image": "data/images/reviewers/google-2023-03-21-brynne-k.jpg",
+  "reviewer_image_source_url": "https://lh3.googleusercontent.com/a-/ALV-UjX8W8qGvN9IuMHQWXNWreJQqOjHcx-NuCyN6_B71YAveKZds1CI=s1920-c-rp-mo-ba12-br100",
   "rating": 5,
-  "snippet": "If you are even remotely considering having Heather paint a special moment at your event, DO NOT HESITATE! My mom surprised us with Heather's painting services…",
+  "text": "If you are even remotely considering having Heather paint a special moment at your event, DO NOT HESITATE! My mom surprised us with Heather's painting services for our March wedding at the Trillium, and the image she painted will be cherished by me and my husband forever. I was floored by how much the painted images resembled us, and the venue is so stunning and she perfectly captured the feeling of our day. Our guests could not stop talking about how fun and impressive it was to stop by throughout the night and watch her paint - it turned out to be a point of entertainment and everyone was posting videos of the process on social media. On top of all that, Heather is just the sweetest, warmest human. She dresses up to \"fit in\" with the wedding guests and welcomes questions and photos from interested parties. I cannot recommend this enough!",
   "date": "2023-03-21T01:26:24Z",
   "review_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSURocjZYWTdBRRAB!2m1!1s0x0:0x6faa6d5cb0f55247!3m1!1s2@1:CIHM0ogKEICAgIDhr6XY7AE%7C%7C?hl=en",
+  "owner_reply": {
+    "text": "Thank you sooo much Brynne!!! It was such an honor to be at your wedding and to create a painting for y’all! Thank you very much for your sweet review!!💗",
+    "date": "2023-03-21T01:41:34Z"
+  },
   "collected_at": "2026-10-05T22:00:27Z",
-  "source": "direct"
+  "source": "direct",
+  "updated_at": "2026-10-06T00:09:42Z",
+  "reviewer_review_count": 43,
+  "reviewer_is_local_guide": true,
+  "review_image_urls": [
+    "https://lh3.googleusercontent.com/grass-cs/ACvplmPnnwd2jEq1p5oU0XUJjS3dFlB9LuuchBZiLephtlAIYr0y7EOTwXZZ-vL1lFBMBFbRRgxEs5J3CAz4W2BbAbMcGNBVrgW0_TgNED9UAQCcw-mKG9W71IGjpzEPA_EZSgMBf7R_=k-no",
+    "https://lh3.googleusercontent.com/grass-cs/ACvplmO7bvX37xILBcfJrMH18zotOovefL7JGoUUX1iyLytc9jEpZ3a9hQoQ9E4IaJizZA39_nl7cW4w3K27912FJtILF8OmtcPPPpRsv4Dr-ZlVclE15oVl1TC8KC2W2rMt4RrdVxn0aw=k-no"
+  ],
+  "language": "en"
 }

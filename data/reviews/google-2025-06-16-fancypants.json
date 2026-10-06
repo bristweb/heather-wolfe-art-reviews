@@ -2,12 +2,26 @@
   "id": "google-4f8a49a8de7f",
   "platform": "google",
   "platform_review_id": "Ci9DQUlRQUNvZENodHljRjlvT205dVYzQm5ZMjlKTVcxTVJFdzVjRU5tVjNadlRuYxAB",
-  "reviewer_display_name": "Fancypants",
+  "reviewer_name": "Fancypants",
+  "reviewer_profile_url": "https://www.google.com/maps/contrib/103003037599333255071?hl=en",
   "reviewer_image": "data/images/reviewers/google-2025-06-16-fancypants.jpg",
+  "reviewer_image_source_url": "https://lh3.googleusercontent.com/a-/ALV-UjVESNtr0bcnxYPk562NiUCVwoVlrkeYxE8p5sXvIgbxgn851vwekQ=s1920-c-rp-mo-ba12-br100",
   "rating": 5,
-  "snippet": "Everyone is talking about this since our wedding. She is absolutely amazing.",
+  "text": "Everyone is talking about this since our wedding.  She is absolutely amazing.",
   "date": "2025-06-16T19:19:21Z",
   "review_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT205dVYzQm5ZMjlKTVcxTVJFdzVjRU5tVjNadlRuYxAB!2m1!1s0x0:0x6faa6d5cb0f55247!3m1!1s2@1:CAIQACodChtycF9oOm9uV3BnY29JMW1MREw5cENmV3ZvTnc%7C%7C?hl=en",
+  "owner_reply": {
+    "text": "I am so happy that your guest enjoyed watching me paint! Your wedding was beautiful and I am thankful to have been a part of it! ",
+    "date": "2025-06-19T01:40:47Z"
+  },
   "collected_at": "2026-10-05T22:00:27Z",
-  "source": "direct"
+  "source": "direct",
+  "updated_at": "2026-10-06T00:09:42Z",
+  "reviewer_review_count": 44,
+  "reviewer_is_local_guide": true,
+  "review_image_urls": [
+    "https://lh3.googleusercontent.com/grass-cs/ACvplmPZMkmdrVTvOXak0YVJfYnaZ4cj90RirvJDQzylrVJn1Zr9-E2iazBQCa3cA-hGbWdLHbl9U7paS1ACwHuIM4E3oTpd7AuZop6gMDQt5MbdperxT-rn_HR3d6CfWfy2GkFSIDExHVC3I2jx=k-no",
+    "https://lh3.googleusercontent.com/grass-cs/ACvplmOGJ7U1L0VSdJs5UGJOj9wn1fZgGN9A3qBe63pqp9KtIUmgouqSGOmBB4lPaVWGLi55Ope1-OJvwJ5MNrINg7dCsdd3akNOjyI9Zk8gQMlQ51lzV0mcMh4Rbni64xcyVk6piFrMxznXYVu_=k-no"
+  ],
+  "language": "en"
 }

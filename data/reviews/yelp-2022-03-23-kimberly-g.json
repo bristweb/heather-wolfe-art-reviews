@@ -2,12 +2,25 @@
   "id": "yelp-9f998c0282a3",
   "platform": "yelp",
   "platform_review_id": "PTahlVzbQxRCfe-JJxvYaw",
-  "reviewer_display_name": "Kimberly G.",
+  "reviewer_name": "Kimberly G.",
+  "reviewer_profile_url": null,
   "reviewer_image": "data/images/reviewers/yelp-2022-03-23-kimberly-g.svg",
+  "reviewer_image_source_url": null,
   "rating": 5,
-  "snippet": "We do not regret this gift to ourselves at all!!!! Heather was absolutely amazing to work with. She was kind, responsive, and made sure we were both included…",
+  "text": "We do not regret this gift to ourselves at all!!!! Heather was absolutely amazing to work with. She was kind, responsive, and made sure we were both included every step of the way! We eloped in Hawaii so unfortunately we did not have her as a live wedding painter but I do not feel like that put us at a disadvantage at all. The photo still came out exactly how we wanted (even better if I'm being totally honest)! She sent multiple videos, pictures, and text to make sure we were all on the same page and we were liking the direction the painting was headed. I loved being able to text her questions/ideas and her willingness to adjust and add without making us feel that we were being \"too much\" or annoying. I can not recommend her enough! My wife and I life in another state and we were SO happy to hear that she ships!! Seriously do not look any further. I loved working with Heather and we will definitely be commissioning her again in the future  Aside from being extremely talented, she is such a kind and wholesome person. You will not regret commissioning her I promise.",
   "date": "2022-03-23T22:28:31Z",
   "review_url": "https://www.yelp.com/biz/heather-wolfe-art-knoxville?hrid=PTahlVzbQxRCfe-JJxvYaw",
+  "owner_reply": {
+    "text": "Thank you so much!! It was an honor working with you!!",
+    "date": "2022-03-24T00:07:07Z"
+  },
   "collected_at": "2026-10-05T22:00:27Z",
-  "source": "direct"
+  "source": "direct",
+  "updated_at": "2026-10-06T00:09:42Z",
+  "reviewer_review_count": 3,
+  "review_image_urls": [
+    "https://s3-media0.fl.yelpcdn.com/bphoto/6wPVwY_dVrSzodqh_7Zc5Q/348s.jpg",
+    "https://s3-media0.fl.yelpcdn.com/bphoto/TfjmxBCl4PFoc6S1tehRBg/348s.jpg"
+  ],
+  "language": "en"
 }

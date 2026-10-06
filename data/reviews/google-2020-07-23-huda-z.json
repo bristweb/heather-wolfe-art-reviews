@@ -2,12 +2,21 @@
   "id": "google-64fcc1e9e707",
   "platform": "google",
   "platform_review_id": "ChZDSUhNMG9nS0VJQ0FnSUQ4bFptOEFREAE",
-  "reviewer_display_name": "Huda Z.",
+  "reviewer_name": "huda zureiqat",
+  "reviewer_profile_url": "https://www.google.com/maps/contrib/106286184735222091907?hl=en",
   "reviewer_image": "data/images/reviewers/google-2020-07-23-huda-z.png",
+  "reviewer_image_source_url": "https://lh3.googleusercontent.com/a/ACg8ocIwmm-DBDutu0OPLHJtGLQlZlE6eln69RDHHcbaf2Gdo824yA=s1920-c-rp-mo-br100",
   "rating": 5,
-  "snippet": "I found Heather by chance on social media while I was trying to figure out a wedding gift for my cousin. She was extremely helpful and patient with everything…",
+  "text": "I found Heather by chance on social media while I was trying to figure out a wedding gift for my cousin. She was extremely helpful and patient with everything and considering that I live in Australia she made things so easy. She managed to capture everything I wanted in the painting and offered more than I could ask for. Heather is definitely one of the sweetest people I've encountered and you can tell she has a deep routed passion for painting and art. The painting turned out stunning and my cousin loved how it turned out. Its a 6/5 stars for me and I hope to have her paint my wedding one day! :)",
   "date": "2020-07-23T12:12:39Z",
   "review_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUQ4bFptOEFREAE!2m1!1s0x0:0x6faa6d5cb0f55247!3m1!1s2@1:CIHM0ogKEICAgID8lZm8AQ%7C%7C?hl=en",
+  "owner_reply": null,
   "collected_at": "2026-10-05T22:00:27Z",
-  "source": "direct"
+  "source": "direct",
+  "updated_at": "2026-10-06T00:09:42Z",
+  "reviewer_review_count": 8,
+  "review_image_urls": [
+    "https://lh3.googleusercontent.com/grass-cs/ACvplmN4y1VWFdq6pkq04XKq1_rjmvSzQUEbYZ6X49r-los9mIQA31ShT5dM4fvEU-fNopOfm4LW1TnXWZNVssvYmjMUjqWi4_68bA1YUIWiGmBt7oOxsRVlNk7FxawCBHO8vuLg1LNBAA=k-no"
+  ],
+  "language": "en"
 }

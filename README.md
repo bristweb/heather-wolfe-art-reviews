@@ -15,12 +15,12 @@ A static, database-free record of every public review of **[Heather Wolfe Art](h
 
 The full list of platforms linked from heatherwolfeart.com (including social profiles with no review system) is in [`data/sources.json`](data/sources.json).
 
-## Privacy rules (public repo)
+## Data policy
 
-- **Names:** only `reviewer_display_name` (first name + last initial, e.g. "Kylee M.") is stored. Full names are never written: `import_reviews.py` abbreviates on import, and `build-index.mjs` fails if a file has a `reviewer_name` field or a display name that isn't abbreviated.
-- **Text:** only a ~160-character `snippet` is stored anywhere (any surname in it is reduced to an initial). Full review text is never stored; the card links to the original review.
-- **No identifying extras:** owner replies, avatar source URLs, and Facebook profile/post URLs are never stored. Facebook cards link to the page's reviews tab.
-- `build-index.mjs` enforces all of this: CI fails if a file has `reviewer_name`, `text`, `owner_response`, `reviewer_image_source_url`, a snippet over 170 characters, or a Facebook profile URL.
+- **Storage: complete.** Each review file stores everything collected: the reviewer's full name, profile URL, and avatar source URL, the full review text, Heather's reply (text and date), the individual review URL (Facebook post URLs included), dates, and platform extras. `data/reviews/index.json` carries the same full records.
+- **Presentation: abbreviated.** The widget computes everything visible at render time. It shows **first name + last initial** (e.g. "Kylee M."). It clips text to a **~160-character snippet** at a word boundary, and the reviewer's own surname inside the snippet is shown as an initial. Screen-reader labels use the abbreviated name too.
+- **Facebook links:** for now the widget links Facebook cards to the page's reviews tab (https://www.facebook.com/HeatherWolfeArt/reviews). The individual post URLs are stored in `review_url` for future use.
+- File names use the abbreviated name: `<platform>-<yyyy-mm-dd>-<first>-<initial>.json`.
 
 ## Layout
 
@@ -55,24 +55,34 @@ Everything is static files served by GitHub Pages. Because a static site can't l
   "id": "google-7ef4eeba2dbb",            // stable: <platform>-<sha1(platform_review_id)[:12]>
   "platform": "google",                    // google | yelp | zola | facebook | (any assets/icons/<platform>.svg)
   "platform_review_id": "Ci9DQUlRQUNv…",  // the platform's own review id
-  "reviewer_display_name": "Kylee M.",     // first name + last initial ONLY
-  "reviewer_image": "data/images/reviewers/google-2026-10-05-kylee-m.jpg",  // repo path
+  "reviewer_name": "Kylee Morris",         // full name as shown on the platform (widget shows "Kylee M.")
+  "reviewer_profile_url": "https://www.google.com/maps/contrib/…",  // Google / Facebook; null otherwise
+  "reviewer_image": "data/images/reviewers/google-2026-10-05-kylee-m.jpg",  // downloaded copy (repo path)
+  "reviewer_image_source_url": "https://lh3.googleusercontent.com/…",       // where it came from (may expire), or null
   "rating": 5,                             // 1-5, or null for Facebook (recommend/not, no stars)
-  "snippet": "first ~160 chars…",          // the ONLY review text stored; "" for rating-only reviews
+  "text": "full review text",              // complete; "" for rating-only reviews (widget clips to ~160 chars)
   "date": "2026-10-05T20:19:50Z",          // ISO 8601, UTC
-  "review_url": "https://www.google.com/maps/reviews/data=…",  // link to the original review (Facebook: page reviews tab)
+  "review_url": "https://www.google.com/maps/reviews/data=…",  // individual review link (Facebook: post URL)
+  "owner_reply": { "text": "…", "date": "2026-10-05T21:47:17Z" },  // Heather's public reply, or null
   "collected_at": "2026-10-05T22:00:27Z",
+  "updated_at": "2026-10-06T00:09:42Z",   // set when an existing review is refreshed (--update)
   "source": "direct",                      // 'elfsight' or 'direct'
-  // optional:
-  "recommended": true,                     // Facebook only
+  // optional, platform-specific:
+  "recommended": true,                     // Facebook
   "title": "…",                            // Zola review title
+  "review_image_ids": ["…"],               // Zola photo ids
+  "review_image_urls": ["…"],              // Google / Yelp review photos
+  "reviewer_review_count": 3,              // Google / Yelp
+  "reviewer_is_local_guide": true,         // Google
+  "language": "en",
+  "tags": ["…"],                           // Facebook
   "featured_on_website": true              // quoted in the heatherwolfeart.com home-page Testimonials
 }
 ```
 
-`data/reviews/index.json` holds, per review: `file, id, platform, reviewer_display_name, reviewer_image, rating, recommended, snippet, date, review_url, featured_on_website, has_text`, plus a `summary` with counts and average ratings per platform.
+`data/reviews/index.json` holds every full review record plus `file` (source path) and `has_text`, sorted newest first, and a `summary` with counts and average ratings per platform. `build-index.mjs` validates required fields, ratings, dates, unique ids, and that each `reviewer_image` exists under `data/images/reviewers/`.
 
-`review_url` points at the individual review where the platform provides one (Google review links, Yelp `?hrid=` links). Facebook post URLs contain the reviewer's profile handle, so Facebook cards link to https://www.facebook.com/HeatherWolfeArt/reviews. Zola has no per-review URL, so those link to the storefront's reviews section.
+`review_url` is the individual review link where the platform provides one: Google review links, Yelp `?hrid=` links, and Facebook post URLs. Zola has no per-review URL, so it stores the storefront's reviews section. The widget currently sends Facebook cards to the page's reviews tab instead of the post (see Data policy).
 
 ## Adding or updating a review
 
@@ -89,7 +99,7 @@ Free, direct methods are used wherever they work. Apify is used only where they 
 | Yelp | Apify | `web_wanderer/yelp-reviews-scraper` | `{"biz_urls":["https://www.yelp.com/biz/heather-wolfe-art-knoxville"],"reviews_limit":200,"reviews_sort":"newest","include_personal_data":true,"date_from":"<YYYY-MM-DD>"}` |
 | Facebook | Apify | `apify/facebook-reviews-scraper` | `{"startUrls":[{"url":"https://www.facebook.com/HeatherWolfeArt/reviews"}],"resultsLimit":100,"onlyReviewsNewerThan":"<YYYY-MM-DD>"}` |
 
-Why Apify is needed for those three: logged-out Google Maps shows a "limited view" with no reviews, yelp.com returns 403, and Facebook lists only a few recommendations without a login. `personalData` / `include_personal_data` are needed to get names and avatars; names are abbreviated before storage. The date is the newest stored review on that platform minus 30 days, so a weekly run only pays for a few reviews (Google ≈ $0.0006/review, Yelp ≈ $0.0003, Facebook ≈ $0.0025). Each run is capped with `maxTotalChargeUsd`.
+Why Apify is needed for those three: logged-out Google Maps shows a "limited view" with no reviews, yelp.com returns 403, and Facebook lists only a few recommendations without a login. `personalData` / `include_personal_data` are needed to get names, avatars, and profile links, which are stored in full. The date is the newest stored review on that platform minus 30 days, so a weekly run only pays for a few reviews (Google ≈ $0.0006/review, Yelp ≈ $0.0003, Facebook ≈ $0.0025). Each run is capped with `maxTotalChargeUsd`.
 
 **Weekly run.** Monitoring isn't a GitHub Actions job. It's a scheduled run on the Bristlecone box that uses the Apify connector:
 
@@ -103,7 +113,7 @@ python3 scripts/pull_reviews.py --from-raw   # pulls Zola directly, imports NEW 
 git add data/reviews data/images/reviewers && git commit -m "reviews: add new reviews $(date +%F)" && git push
 ```
 
-With an Apify API token instead of the connector, `APIFY_TOKEN=… python3 scripts/pull_reviews.py` runs the actors through the REST API itself. `.pull/` holds raw scraper output (full names and text). It's git-ignored and must never be committed. `--all` drops the date window (it still adds only reviews whose `id` isn't stored yet). `scripts/import_reviews.py --update` refreshes existing reviews.
+With an Apify API token instead of the connector, `APIFY_TOKEN=… python3 scripts/pull_reviews.py` runs the actors through the REST API itself. `.pull/` holds raw scraper output. It's git-ignored; the imported review files are the record. `--all` drops the date window (it still adds only reviews whose `id` isn't stored yet). `scripts/import_reviews.py --update` refreshes existing reviews.
 
 **About Elfsight:** the only Elfsight widget on heatherwolfeart.com is an **Instagram feed** (InstaShow, widget id `1677b7d0-6774-4670-903d-ffb3b4c9ed6c`, share link `https://1677b7d067744670903dffb3b4c9ed6c.elf.site`), not a reviews widget, so no review data comes from Elfsight. Its config is at `https://core.service.elfsight.com/p/boot/?page=https%3A%2F%2Fheatherwolfeart.com%2F&w=1677b7d0-6774-4670-903d-ffb3b4c9ed6c`. The home page's "Testimonials" (Brendan C, Haley R, Ciera S) are excerpts of Google reviews and are flagged `featured_on_website: true`.
 
@@ -113,7 +123,7 @@ The order is deterministic, so it's the same on every load:
 
 - **"All reviews": newest first, with gentle platform diversity.** For each slot, the widget takes the newest remaining review. If that review's platform matches the previous **2** cards, it takes the newest remaining review from a *different* platform instead, but only if that review is at most **~18 months (548 days)** older than the newest candidate. Otherwise it takes the newest review anyway.
 - **Single-platform filter** (e.g. Yelp): newest first.
-- Ties are broken by `id`. Rating-only reviews (empty snippet) never become cards, but they still count in the header.
+- Ties are broken by `id`. Rating-only reviews (empty text) never become cards, but they still count in the header.
 
 Constants `MAX_SAME_RUN` (2) and `DIVERSITY_WINDOW_DAYS` (548) are at the top of `assets/js/reviews-widget.js`.
 

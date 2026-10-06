@@ -2,12 +2,22 @@
   "id": "google-98255bdd9b3c",
   "platform": "google",
   "platform_review_id": "ChZDSUhNMG9nS0VJQ0FnSURZd2JpdFJREAE",
-  "reviewer_display_name": "Melissa C.",
+  "reviewer_name": "Melissa Coombs",
+  "reviewer_profile_url": "https://www.google.com/maps/contrib/111995393626757615182?hl=en",
   "reviewer_image": "data/images/reviewers/google-2019-05-14-melissa-c.jpg",
+  "reviewer_image_source_url": "https://lh3.googleusercontent.com/a-/ALV-UjWtenVev4gr0uU2JK4NVlDbPgxzkozf6U68LtMvRniW0eVMUm4=s1920-c-rp-mo-ba12-br100",
   "rating": 5,
-  "snippet": "Heather did an amazing job painting a picture from my wedding! She was so easy to work with and always responded quickly. I would definitely recommend using…",
+  "text": "Heather did an amazing job painting a picture from my wedding!  She was so easy to work with and always responded quickly. I would definitely recommend using her for any portrait - it's so much more special than just another photograph. I plan on using her again for more family portraits!  Thanks Heather!",
   "date": "2019-05-14T19:28:58Z",
   "review_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSURZd2JpdFJREAE!2m1!1s0x0:0x6faa6d5cb0f55247!3m1!1s2@1:CIHM0ogKEICAgIDYwbitRQ%7C%7C?hl=en",
+  "owner_reply": {
+    "text": "Thank you so much Melissa! It was an honor!!",
+    "date": "2019-07-12T20:57:46Z"
+  },
   "collected_at": "2026-10-05T22:00:27Z",
-  "source": "direct"
+  "source": "direct",
+  "updated_at": "2026-10-06T00:09:42Z",
+  "reviewer_review_count": 14,
+  "reviewer_is_local_guide": true,
+  "language": "en"
 }

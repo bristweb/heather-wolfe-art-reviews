@@ -12,10 +12,11 @@ Raw inputs (see README "Re-pulling reviews"):
   zola     : review objects extracted from the Zola storefront __NEXT_DATA__
 
 By default only NEW reviews are written (matched by stable `id`); pass --update
-to also refresh existing ones (they keep their file names). Reviewer names are
-reduced to first name + last initial before anything is written. Only a ~160-char
-snippet is stored (surnames reduced to initials); full review text, owner replies,
-avatar source URLs and Facebook profile/post URLs are never written. Avatars are downloaded to
+to also refresh existing ones (they keep their file names and avatars). EVERYTHING is
+stored: full reviewer name, full text, owner reply (text + date), reviewer profile URL,
+avatar source URL, individual review URL (incl. Facebook post URLs), plus extras.
+Abbreviating names and clipping text is done only at render time by the widget.
+File names use the abbreviated name slug. Avatars are downloaded to
 data/images/reviewers/ (never hotlinked); an initials SVG is generated when the
 platform has no photo. Run scripts/build-index.mjs afterwards (CI does it too).
 """
@@ -48,8 +49,8 @@ def slugify(s):
 
 
 def display_name(name):
-    """'Jane Doe' -> 'Jane D.'; 'Mary Smith (Smith Studio)' -> 'Mary S.';
-    'Ann And Bob C.' -> 'Ann & Bob C.'; 'Ashley' -> 'Ashley'; 'JANE D.' -> 'Jane D.'. Full names are never stored."""
+    """Used for file-name slugs and initials avatars only. 'Jane Doe' -> 'Jane D.'; 'Mary Smith (Smith Studio)' -> 'Mary S.';
+    'Ann And Bob C.' -> 'Ann & Bob C.'; 'Ashley' -> 'Ashley'; 'JANE D.' -> 'Jane D.'. """
     n = re.sub(r'\(.*?\)', ' ', name or '').strip()
     words = [w for w in re.split(r'\s+', n) if w]
     if not words:
@@ -63,19 +64,6 @@ def display_name(name):
         first = first[:1]
     first = ['&' if w.lower() in ('and', '&') else fix(w) for w in first]
     return ' '.join(first) + ' ' + last[0].upper() + '.'
-
-
-def snippet(text, full_name='', n=160):
-    """~160-char excerpt; the reviewer's own surname(s) are reduced to an initial."""
-    t = re.sub(r'\s+', ' ', text or '').strip()
-    words = [w.strip('.,') for w in re.split(r'\s+', re.sub(r'[()]', ' ', full_name or ''))]
-    for w in words[1:]:
-        if len(w) > 1 and w.lower() not in ('and', '&'):
-            t = re.sub(r'\b' + re.escape(w) + r'\b', w[0].upper() + '.', t, flags=re.I)
-    if len(t) <= n:
-        return t
-    cut = t[:n].rsplit(' ', 1)[0].rstrip(',.;:!?-')
-    return cut + '…'
 
 
 def initials_svg(name, path):
@@ -115,38 +103,53 @@ def iso(d):
     return dt.astimezone(datetime.timezone.utc).replace(microsecond=0).isoformat().replace('+00:00', 'Z')
 
 
+def reply(text, date):
+    return {'text': text, 'date': iso(date) if date else None} if text else None
+
+
 def from_google(x):
     photo = x.get('reviewerPhotoUrl')
-    if photo:
-        photo = re.sub(r'=s\d+.*$', '=s160-c', photo)
-    return dict(platform='google', pid=x['reviewId'], name=x.get('name'), photo=photo, rating=x.get('stars'),
+    return dict(platform='google', pid=x['reviewId'], name=x.get('name'), photo=photo,
+                photo_dl=re.sub(r'=s\d+.*$', '=s160-c', photo) if photo else None,
+                profile=x.get('reviewerUrl'), rating=x.get('stars'),
                 text=x.get('text') or '', date=iso(x['publishedAtDate']),
                 url=x.get('reviewUrl') or GOOGLE_PLACE_REVIEWS,
-                extra={'featured_on_website': x['reviewId'] in FEATURED})
+                reply=reply(x.get('responseFromOwnerText'), x.get('responseFromOwnerDate')),
+                extra={'featured_on_website': x['reviewId'] in FEATURED,
+                       'reviewer_review_count': x.get('reviewerNumberOfReviews'),
+                       'reviewer_is_local_guide': x.get('isLocalGuide'),
+                       'review_image_urls': x.get('reviewImageUrls') or None,
+                       'language': x.get('originalLanguage')})
 
 
 def from_yelp(x):
     a = x.get('author') or {}
+    pr = x.get('publicReply') or {}
     return dict(platform='yelp', pid=x['reviewEncid'], name=a.get('name'), photo=a.get('profile_photo'),
-                rating=x.get('rating'), text=x.get('text') or '', date=iso(x['reviewDate']),
+                profile=None, rating=x.get('rating'), text=x.get('text') or '', date=iso(x['reviewDate']),
                 url=x.get('reviewUrl') or SOURCES['yelp'],
-                extra={})
+                reply=reply(pr.get('text'), pr.get('created_at')),
+                extra={'reviewer_review_count': a.get('review_count'),
+                       'review_image_urls': [ph.get('url') for ph in x.get('photos') or [] if ph.get('url')] or None,
+                       'language': x.get('language')})
 
 
 def from_facebook(x):
     u = x.get('user') or {}
     return dict(platform='facebook', pid=x['id'], name=u.get('name'), photo=u.get('profilePic'),
-                rating=None, text=x.get('text') or '', date=iso(x['date']),
-                # FB post URLs embed the reviewer's profile handle -> link the page's reviews tab
-                url=SOURCES['facebook'],
-                extra={'recommended': bool(x.get('isRecommended'))})
+                profile=u.get('profileUrl'), rating=None, text=x.get('text') or '', date=iso(x['date']),
+                url=x.get('url') or SOURCES['facebook'], reply=None,
+                extra={'recommended': bool(x.get('isRecommended')), 'tags': x.get('tags') or None})
 
 
 def from_zola(x):
+    resp = next(iter(x.get('responses') or []), {}) or {}
     return dict(platform='zola', pid=x['reviewUuid'], name=x.get('reviewerName'), photo=x.get('reviewerPhotoUrl'),
-                rating=x.get('overallRating'), text=x.get('reviewText') or '', date=iso(x['createdAt']),
+                profile=None, rating=x.get('overallRating'), text=x.get('reviewText') or '', date=iso(x['createdAt']),
                 url=SOURCES['zola'] + '#reviews',
-                extra={'title': x.get('title')})
+                reply=reply(resp.get('responseText') or x.get('responseText'), resp.get('createdAt') or x.get('respondedAt')),
+                extra={'title': x.get('title'),
+                       'review_image_ids': [ph.get('imageUuid') for ph in x.get('reviewPhotos') or []] or None})
 
 
 def main():
@@ -176,34 +179,44 @@ def main():
             r = fn(x)
             rid = f"{plat}-{hashlib.sha1(r['pid'].encode()).hexdigest()[:12]}"
             day = r['date'][:10]
-            shown = display_name(r['name'])
-            base = f"{plat}-{day}-{slugify(shown)}"
+            base = f"{plat}-{day}-{slugify(display_name(r['name']))}"
             fname = existing.get(rid)
             if fname and not a.update:
                 continue
-            if not fname:
+            old = {}
+            if fname:
+                with open(os.path.join(REV_DIR, fname)) as f:
+                    old = json.load(f)
+            else:
                 fname, k = base + '.json', 2
                 while os.path.exists(os.path.join(REV_DIR, fname)):
                     fname, k = f'{base}-{k}.json', k + 1
             stem = fname[:-5]
-            img = fetch_avatar(r['photo'], stem)
-            if not img:
-                img = f'data/images/reviewers/{stem}.svg'
-                initials_svg(shown, os.path.join(ROOT, img))
+            img = old.get('reviewer_image')
+            if not (img and os.path.exists(os.path.join(ROOT, img))):  # keep an already-downloaded avatar
+                img = fetch_avatar(r.get('photo_dl') or r['photo'], stem)
+                if not img:
+                    img = f'data/images/reviewers/{stem}.svg'
+                    initials_svg(display_name(r['name']), os.path.join(ROOT, img))
             rec = {
                 'id': rid,
                 'platform': plat,
                 'platform_review_id': r['pid'],
-                'reviewer_display_name': shown,
+                'reviewer_name': r['name'],
+                'reviewer_profile_url': r['profile'],
                 'reviewer_image': img,
+                'reviewer_image_source_url': r['photo'],
                 'rating': r['rating'],
-                'snippet': snippet(r['text'], r['name']),
+                'text': r['text'],
                 'date': r['date'],
                 'review_url': r['url'],
-                'collected_at': NOW,
-                'source': a.source,
+                'owner_reply': r['reply'],
+                'collected_at': old.get('collected_at') or NOW,
+                'source': old.get('source') or a.source,
             }
-            rec.update({k: v for k, v in r['extra'].items() if v not in (None, False, '')})
+            if old:
+                rec['updated_at'] = NOW
+            rec.update({k: v for k, v in r['extra'].items() if v not in (None, False, '', [])})
             with open(os.path.join(REV_DIR, fname), 'w') as f:
                 json.dump(rec, f, indent=2, ensure_ascii=False)
                 f.write('\n')

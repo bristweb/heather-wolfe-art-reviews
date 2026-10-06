@@ -2,12 +2,21 @@
   "id": "google-5a10854a35d8",
   "platform": "google",
   "platform_review_id": "ChZDSUhNMG9nS0VJQ0FnSUR5aU82ME1nEAE",
-  "reviewer_display_name": "Joanna T.",
+  "reviewer_name": "Joanna Tomai",
+  "reviewer_profile_url": "https://www.google.com/maps/contrib/100800516266318055317?hl=en",
   "reviewer_image": "data/images/reviewers/google-2021-02-22-joanna-t.jpg",
+  "reviewer_image_source_url": "https://lh3.googleusercontent.com/a-/ALV-UjWYlZZiH52GM1Zt-SHm22F6nvehlNaJwWa6pXJUgw41YtbzQclX=s1920-c-rp-mo-br100",
   "rating": 5,
-  "snippet": "This was my third time working with Heather on a pet portrait and as with the last two, the finished portrait is simply magnificent. She did such a great job…",
+  "text": "This was my third time working with Heather on a pet portrait and as with the last two, the finished portrait is simply magnificent. She did such a great job capturing each dog with such great detail. My husband and I are in love with the three portraits that are on display above our fireplace (we receive so many compliments on them, too!).",
   "date": "2021-02-22T01:49:48Z",
   "review_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUR5aU82ME1nEAE!2m1!1s0x0:0x6faa6d5cb0f55247!3m1!1s2@1:CIHM0ogKEICAgIDyiO60Mg%7C%7C?hl=en",
+  "owner_reply": {
+    "text": "Joanna, I am thrilled you love them!! Thank you so much for the support over the last several years. It has been an honor to work with both you and your husband!",
+    "date": "2021-02-23T06:49:55Z"
+  },
   "collected_at": "2026-10-05T22:00:27Z",
-  "source": "direct"
+  "source": "direct",
+  "updated_at": "2026-10-06T00:09:42Z",
+  "reviewer_review_count": 6,
+  "language": "en"
 }

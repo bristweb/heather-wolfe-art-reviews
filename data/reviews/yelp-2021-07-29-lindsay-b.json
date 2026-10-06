@@ -2,12 +2,18 @@
   "id": "yelp-56f667fe73db",
   "platform": "yelp",
   "platform_review_id": "te5YZdlb8I-yCM_Abi9F9A",
-  "reviewer_display_name": "Lindsay B.",
+  "reviewer_name": "Lindsay B.",
+  "reviewer_profile_url": null,
   "reviewer_image": "data/images/reviewers/yelp-2021-07-29-lindsay-b.jpg",
+  "reviewer_image_source_url": "https://s3-media0.fl.yelpcdn.com/photo/5itRcBDnWEDdtKYoUvoMwA/180s.jpg",
   "rating": 5,
-  "snippet": "I am so happy I found Heather! I really wanted a live wedding painter for my reception but I also wanted to ensure I found someone whose style I really loved…",
+  "text": "I am so happy I found Heather! I really wanted a live wedding painter for my reception but I also wanted to ensure I found someone whose style I really loved. After hours of searching I found Heather's website and fell in love with her work. There were wedding painters closer to me in SC but I knew I would be happy with whatever Heather produced so the extra travel fees (outside of her normal area) were definitely worth it to me. She did not disappoint. The end product was amazing and I couldn't be happier. The live wedding painting experience also was very entertaining for my guests. It was amazing to see the painting progress throughout the reception. I would happily give Heather more than 5 stars if I could!",
   "date": "2021-07-29T01:19:18Z",
   "review_url": "https://www.yelp.com/biz/heather-wolfe-art-knoxville?hrid=te5YZdlb8I-yCM_Abi9F9A",
+  "owner_reply": null,
   "collected_at": "2026-10-05T22:00:27Z",
-  "source": "direct"
+  "source": "direct",
+  "updated_at": "2026-10-06T00:09:42Z",
+  "reviewer_review_count": 1,
+  "language": "en"
 }

@@ -12,8 +12,8 @@
 Apify is used only where the free/direct method fails. Without APIFY_TOKEN only Zola is pulled.
 Each Apify run asks only for reviews newer than (latest stored review on that platform - since-days),
 and is capped with maxTotalChargeUsd. --all ignores the date window (full re-pull).
-Raw results live in .pull/ (git-ignored; they contain full names/text and must never be committed).
-Then runs import_reviews.py (new reviews only, snippet + display name only) and build-index.mjs.
+Raw results live in .pull/ (git-ignored). Then runs import_reviews.py (new reviews only; full records
+stored) and build-index.mjs.
 Committing/pushing is left to the caller (see README).
 """
 import argparse, datetime, json, os, re, subprocess, sys, urllib.parse, urllib.request

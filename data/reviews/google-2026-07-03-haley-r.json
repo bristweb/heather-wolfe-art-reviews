@@ -2,12 +2,27 @@
   "id": "google-753596244691",
   "platform": "google",
   "platform_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2pWMFgwMWFMWGs1ZW1FNWNreGFTVkJJUTA0d1RGRRAB",
-  "reviewer_display_name": "Haley R.",
+  "reviewer_name": "Haley Rodgers",
+  "reviewer_profile_url": "https://www.google.com/maps/contrib/104820081645331486483?hl=en",
   "reviewer_image": "data/images/reviewers/google-2026-07-03-haley-r.png",
+  "reviewer_image_source_url": "https://lh3.googleusercontent.com/a/ACg8ocK4XCnQIiFbjc-WUXaW1U_xOzGJkiTqZ4MM-wKM-CJIV3OzuA=s1920-c-rp-mo-br100",
   "rating": 5,
-  "snippet": "From our initial phone call to the finished details, Heather was so kind to help us envision the masterpiece and even adapt when we changed things day of! The…",
+  "text": "From our initial phone call to the finished details, Heather was so kind to help us envision the masterpiece and even adapt when we changed things day of! The painting could not have been more perfect to capture the essence of our wedding day! Thank you so much, Heather!! The painting allows us to relive our wedding day every time we look at it!",
   "date": "2026-07-03T20:50:12Z",
   "review_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2pWMFgwMWFMWGs1ZW1FNWNreGFTVkJJUTA0d1RGRRAB!2m1!1s0x0:0x6faa6d5cb0f55247!3m1!1s2@1:CAIQACodChtycF9oOjV0X01aLXk5emE5ckxaSVBIQ04wTFE%7C%7C?hl=en",
+  "owner_reply": {
+    "text": "Haley!! Your wedding was absolutely gorgeous and it was such an honor to come and paint for your guest!!! Thank you very much for letting me join💗",
+    "date": "2026-07-03T20:57:27Z"
+  },
   "collected_at": "2026-10-05T22:00:27Z",
-  "source": "direct"
+  "source": "direct",
+  "updated_at": "2026-10-06T00:09:42Z",
+  "reviewer_review_count": 5,
+  "review_image_urls": [
+    "https://lh3.googleusercontent.com/grass-cs/ACvplmMhKbU1TdBkwwlqF1isP8kch20FoKUecRnHCeDW9uY0E3I_4048meLEvUtvn7YOQsM3isv0YUFfZHqL2wXVHjtolJ7rcGWojvJT8BDZcxvN1go2sPcw_4YNb41hoFnepgZrOAlep1doXps=k-no",
+    "https://lh3.googleusercontent.com/grass-cs/ACvplmOmTLxtJ5c7vW7wsHmpsHHqFAQRMAM0CVlwR70qOPWqZlNhl4MZRGNQwQ64sSVMqrr9RZIepMf8sQStf8QOj0tiiIR50UzVy_SmJZSz9hYxTFu17qJ6SNGyhN-6GU9oEamFGbsDyv6_Z0ZL=k-no",
+    "https://lh3.googleusercontent.com/grass-cs/ACvplmNSNYvpLaJPx69tTR_upD6a81MxPzW19KPxt9B1Gh4bLkLW1jwwmUk6rh8MYUn4g7TML3scViUyQTj8n82xNnzEFeDSLcmWhWKstV5qltXcQ0Cad0Ty428RYQpDqFXQoJ1jvnWq0KP5U0Kg=k-no",
+    "https://lh3.googleusercontent.com/grass-cs/ACvplmP-8gNqo83HTE3XVjaLYeZzxq3qIsRWyJgwxXLPXKG6rGAjKM-mx9MSKyg8zOHvO4DUiJUIlnG3IvRY-cAEYUf_EzFKcT0hEgvAzOTx5phGq6-gCsSjz5BtRGU2D2Rhk_fmZuxzVKtDQZTN=k-no"
+  ],
+  "language": "en"
 }

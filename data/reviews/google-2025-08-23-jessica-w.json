@@ -2,12 +2,23 @@
   "id": "google-cd2152a2f073",
   "platform": "google",
   "platform_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2xadE9TMHdhbVZ4VW1oVlVrZENORzFuVldadWMzYxAB",
-  "reviewer_display_name": "Jessica W.",
+  "reviewer_name": "Jessica Willard",
+  "reviewer_profile_url": "https://www.google.com/maps/contrib/111371399535666241985?hl=en",
   "reviewer_image": "data/images/reviewers/google-2025-08-23-jessica-w.png",
+  "reviewer_image_source_url": "https://lh3.googleusercontent.com/a/ACg8ocKC42JTowoKROFGNSJHE_QUyG0ORtNNxi2rdWZf4PMi6u7g8w=s1920-c-rp-mo-br100",
   "rating": 5,
-  "snippet": "Having Heather as our live wedding painter was one of the most touching and memorable parts of our day. Watching her bring our special day to life on canvas…",
+  "text": "Having Heather as our live wedding painter was one of the most touching and memorable parts of our day. Watching her bring our special day to life on canvas was truly magical—not just for us, but for everyone there. One of the most meaningful moments was when she had us add our own brushstrokes, making the artwork feel even more personal and emotional. The final piece is absolutely stunning and a one-of-a-kind keepsake we’ll treasure forever. Heather is not only incredibly talented, but also warm, kind, and an absolute joy to work with. We feel so blessed to have had her as part of our special day!",
   "date": "2025-08-23T00:22:02Z",
   "review_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2xadE9TMHdhbVZ4VW1oVlVrZENORzFuVldadWMzYxAB!2m1!1s0x0:0x6faa6d5cb0f55247!3m1!1s2@1:CAIQACodChtycF9oOlZtOS0wamVxUmhVUkdCNG1nVWZuc3c%7C%7C?hl=en",
+  "owner_reply": null,
   "collected_at": "2026-10-05T22:00:27Z",
-  "source": "direct"
+  "source": "direct",
+  "updated_at": "2026-10-06T00:09:42Z",
+  "reviewer_review_count": 2,
+  "review_image_urls": [
+    "https://lh3.googleusercontent.com/grass-cs/ACvplmN-aelp8aeeCet0Xy42f_LGrKM0jzTtSa5mOG_2Pr75K0-7NL20OVJ6CIWqqMqNLpF22N90ZiirvHrgi9BCu0yJcf8OEtZ1E5h2mSwsQuoVZ08mblS5dMuqrKMOjBWkoW7xmAyY5bqOyz0J=k-no",
+    "https://lh3.googleusercontent.com/grass-cs/ACvplmOa5Y59g1DuTcPKgvigQgvhprf5e_Yc9zkdFdEJGgG7tMf2DBBaWYxS-NOXHgEUgJ71A_5Zmu1CrmGXpWDBoq1YFYcGUSFjg17Se5_EwYq1R09bZ1y2h23hXoR2UdsJXHgeNd9tFVrWqXUo=k-no",
+    "https://lh3.googleusercontent.com/grass-cs/ACvplmOI1R9BKkuDwHySMXQNaq2QGAwK-ATYfKtvclXj76heAw_xljT29CYd-1ae-HOQZpO4EpI2rCXrBkNzD-zS95wks50znPOUd6PB-zyZ-kdhIleQT87o9gnsdTxKoU3w7Mk5pPH_-uTWp77_=k-no"
+  ],
+  "language": "en"
 }
