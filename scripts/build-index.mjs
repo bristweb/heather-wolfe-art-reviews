@@ -27,7 +27,7 @@ for (const f of files) {
   if (r.reviewer_image && !r.reviewer_image.startsWith('data/images/reviewers/')) errors.push(`${f}: reviewer_image must live under data/images/reviewers/`);
   if (ids.has(r.id)) errors.push(`${f}: duplicate id ${r.id}`);
   ids.add(r.id);
-  reviews.push({ file: `data/reviews/${f}`, ...r, has_text: Boolean((r.text || '').trim()) });
+  reviews.push({ file: `data/reviews/${f}`, ...r, has_text: Boolean((r.text || '').replace(/[\s\u200b-\u200d\u2060\ufeff]+/g, '')) });
 }
 if (errors.length) { console.error(errors.join('\n')); process.exit(1); }
 

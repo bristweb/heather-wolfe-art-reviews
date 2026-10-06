@@ -49,6 +49,7 @@ Options go on the script tag:
 - The widget renders directly in your page, so it sizes itself naturally and needs no resize script.
 - It stays invisible until its font and first layout are ready, then fades in once, with no font swap or layout jump.
 - **Several widgets on one page:** use one script tag per widget, each in its own spot with its own options (for example a grid of Zola reviews and a carousel of the latest six). The data and CSS are downloaded only once.
+- **It fills the width it's given, up to 1200px, inside any page builder.** That includes containers that shrink their content to fit: Framer/Squarespace code blocks, centered flex columns, `text-align:center` blocks, inline-block, `fit-content`, floated, and absolutely positioned parents. It never causes horizontal scrolling.
 - The widget's internal classes all start with `rw-`, its font has its own family name, and a small reset keeps common host styles (line height, image borders, text alignment) from leaking in.
 
 **Rendering somewhere other than the script's position** (optional), for example when the script has to go in `<head>` or a site-wide footer:
@@ -106,6 +107,7 @@ Options go in the query string: `embed.html?layout=grid&platform=google&limit=12
 | `data-platform` | `platform` | `all`, or a platform key from `data/config.json` (`google`, `yelp`, `zola`, `facebook`) | `all` |
 | `data-limit` | `limit` | maximum number of cards (`0` = no limit) | `0` |
 | `data-base` | n/a | repo root URL, ending in `/` | worked out from the script URL |
+| `data-overflow` | n/a | `visible` lets the carousel arrows overhang the widget edge by 8px (the bare pages use this). By default the overhang is clipped so it can't cause horizontal page scroll | clipped |
 
 Query parameters on the page that hosts the widget override the `data-` attributes (this applies to every widget on that page).
 
@@ -124,13 +126,14 @@ The platform tabs still let visitors switch filters. The header's rating and rev
 | `display.max_same_platform_run`, `display.diversity_window_days` | card-order diversity (see [Card order](#card-order)) |
 | `display.date_locale`, `display.date_options` | date formatting (`Intl.DateTimeFormat` locale and options) |
 | `display.font_timeout_ms` | how long to wait for the webfont before showing the fallback face |
+| `display.show_rating_only_reviews` | `false` (default): reviews with no text are counted in the header but get no card. `true`: they get a card with no text element |
 | `rating_labels` | words shown next to the score (`min` average → label) |
 | `strings` | every piece of visible or screen-reader text ("Write a review", "Based on", "View on {platform}", aria labels, …), with `{placeholders}` |
 | `avatars.initials_palette`, `avatars.initials_text_color` | colors of the generated initials avatars (used by the import script) |
 
 ### Look and feel: `data/theme/theme.css`
 
-This file holds the `@font-face` rules (fonts in `data/theme/fonts/`) and CSS custom properties on `.rw-root`, which the generic stylesheet reads:
+This file holds the `@font-face` rules (fonts in `data/theme/fonts/`) and CSS custom properties on `.rw-host` (inherited by the widget), which the generic stylesheet reads:
 
 | Variable | Used for | Heather Wolfe Art |
 |---|---|---|
@@ -319,7 +322,7 @@ The order is deterministic, so it's the same on every load:
   - Today the first 12 cards run Google, Google, Zola, repeated.
 - **Single-platform filter** (e.g. Yelp): newest first.
 - Ties are broken by `id`.
-- Rating-only reviews (empty text) never become cards, but they still count in the header (76 reviews, 71 cards).
+- Rating-only reviews (empty or whitespace-only text) never become cards, but they still count in the header (76 reviews, 71 cards). With `display.show_rating_only_reviews: true` they get cards with no text element.
 
 Both numbers are settings: `display.max_same_platform_run` and `display.diversity_window_days` in `data/config.json`.
 
@@ -367,6 +370,13 @@ The "Write a review" button goes to the active platform's `write_url`; on the "A
 ## Technical details
 
 - **Mounting:** each copy of the script captures its own `document.currentScript` when it runs, then picks `data-target`, unfilled `[data-reviews-widget]` elements, or a new `<div>` inserted before its own tag (see [the rules above](#javascript-embed-preferred)). A script that runs while the page is still parsing (plain or `async`) waits for `DOMContentLoaded`, so targets further down the page exist. Each element is filled only once.
+- **DOM and sizing:** the mount element (the inserted `<div>` or your target) becomes `.rw-host`. It contains a zero-height `.rw-sizer` and the widget itself, `.rw-root`.
+  - **Why it collapsed:** `.rw-root` has `container-type: inline-size` so the header and carousel can use container queries. That size containment gives it an intrinsic width of 0.
+  - **Where it collapsed:** any parent that sizes children to their content (a Framer Embed or Squarespace code block wrapper, which is a centered flex column; inline-block, `fit-content`, float or absolute parents). There the old widget shrank to its 12px of padding and the container queries picked the narrowest layout.
+  - **How the host fixes it:** the host is a full-width block (`width:100%; min-width:0; flex:1 1 100%; align-self:stretch; justify-self:stretch; text-align:left`, with a doubled class so page-builder rules can't override it).
+  - **What the sizer adds:** a row of 24 inline blocks gives the host an intrinsic max-content width of `--rw-max-width` and a min-content width of 1/24 of it. Shrink-to-fit parents therefore size the widget to the available width without ever forcing overflow.
+  - **Clipping:** `.rw-clip` (`overflow-x: clip`) trims the arrows' overhang.
+- **Empty text:** a review whose text is empty or only whitespace / zero-width characters never gets a text element (no empty paragraph, quote, spacer, or placeholder). The card's "View on …" link is pinned to the bottom with `margin-top: auto`, so a card without text still lays out cleanly.
 - **Loading:** the script works out the repo root as `new URL('../../', document.currentScript.src)`, or uses `data-base`. In parallel it fetches `data/config.json` and `data/reviews/index.json` (`cache: no-cache`) and adds `<link>`s for `assets/css/reviews-widget.css` and `data/theme/theme.css`, unless the page already has them. `index.html` / `embed.html` include them in `<head>` and use the same single script tag. Everything is fetched once per page, however many widgets or script tags there are (shared through `window.__reviewsWidget`).
 - **No flash:** the root starts at `opacity: 0`. The widget waits for the stylesheets, then for weights 400, 700, and italic 300 of the first family in `--rw-font`. That wait has a timeout of `display.font_timeout_ms`; after it, the theme's metric-matched fallback face is used. After the first layout the widget fades in over 0.18s (instantly with reduced motion). The fonts use `font-display: block`.
 - **Accessibility:** each card is a single `<a>` (new tab, `rel="noopener"`) with an aria label like "Read Kylee M.'s review on Google (opens in a new tab)". Nothing inside a card is interactive. The tabs are `role="tab"` buttons with counts in their labels, star ratings have text labels, and focus rings are visible. Cards have no shadows: hover lifts them 2px with an accent border, and focus shows a 3px accent outline.

@@ -37,13 +37,14 @@
   const DISPLAY = {
     layout: 'carousel', snippet_chars: 160, abbreviate_last_names: true, max_same_platform_run: 2,
     diversity_window_days: 548, date_locale: 'en-US', date_options: { year: 'numeric', month: 'short', day: 'numeric' },
-    font_timeout_ms: 1200,
+    font_timeout_ms: 1200, show_rating_only_reviews: false,
   };
   const RATING_LABELS = [{ min: 4.75, label: 'Excellent' }, { min: 4.25, label: 'Great' }, { min: 3.5, label: 'Good' }, { min: 0, label: 'Reviews' }];
   const STAR = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L10 14.9l-5.2 2.7 1-5.8L1.5 7.7l5.9-.9z"/></svg>';
   const THUMB = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 9h3v9H2zM7 18h7.6a2 2 0 0 0 2-1.6l1.2-6A2 2 0 0 0 15.8 8H12V4.5A2.5 2.5 0 0 0 9.5 2L7 8z"/></svg>';
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const fill = (tpl, vars) => String(tpl).replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
+  const isBlank = t => !String(t ?? '').replace(/[\s\u200b-\u200d\u2060\ufeff]+/g, '');
   const byNewest = (a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id);
 
   // ---- loading helpers ----
@@ -90,10 +91,20 @@
   }
 
   // opts: data-* options (layout, platform, limit, base) from the script tag and/or the target element.
-  async function mount(el, opts) {
+  // DOM: host (inserted container or your target; full-width block, gives the widget an intrinsic width)
+  //        > .rw-sizer (zero-height; max-content = --rw-max-width, min-content tiny, so shrink-to-fit parents
+  //          like centered flex columns, inline-blocks, fit-content or floats size the widget to the available width)
+  //        > .rw-root (the widget; container-type:inline-size for the header/carousel container queries).
+  // Without the sizer, size containment gives the root an intrinsic width of 0 and it collapses in such parents.
+  async function mount(host, opts) {
     const q = new URLSearchParams(location.search);
     let base = opts.base || DEFAULT_BASE;
     if (!base.endsWith('/')) base += '/';
+    host.classList.add('rw-host');
+    if (opts.overflow !== 'visible') host.classList.add('rw-clip');
+    host.innerHTML = `<div class="rw-sizer" aria-hidden="true">${'<i></i> '.repeat(24)}</div>`;
+    const el = document.createElement('div');
+    host.appendChild(el);
     el.classList.add('rw-root');
     el.style.opacity = '0'; // hidden until CSS, fonts and the first layout are ready (CSS takes over afterwards)
     // Stay invisible until the webfont is ready AND the first render is laid out, then fade in once, so there's
@@ -192,7 +203,10 @@
 
     const all = data.reviews;
     for (const r of all) { r.display_name = displayName(r.reviewer_name); r.snippet_text = snippet(r.text, r.reviewer_name); }
-    const withText = all.filter(r => r.snippet_text); // rating-only reviews never become cards
+    // Rating-only reviews (empty/whitespace text) count in the header but never become cards, unless
+    // display.show_rating_only_reviews is true; then their card simply has no text element.
+    const hasText = r => !isBlank(r.text) && Boolean(r.snippet_text);
+    const withText = D.show_rating_only_reviews ? all.slice() : all.filter(hasText);
     const newest = withText.slice().sort(byNewest);
     const allOrder = diverseOrder(withText);
     const present = Object.keys(PLATFORMS).filter(p => all.some(r => r.platform === p));
@@ -246,7 +260,7 @@
             ${icon(r.platform, 'rw-platform')}
           </div>
           ${rating}
-          <p class="rw-text">${esc(r.snippet_text)}</p>
+          ${hasText(r) ? `<p class="rw-text">${esc(r.snippet_text)}</p>` : ''}
           <span class="rw-link" aria-hidden="true">${esc(fill(S.view_on, { platform: name }))} <span class="rw-arrow">→</span></span>
         </a>`;
       }).join('');
@@ -286,7 +300,7 @@
   }
 
   // ---- where to render (no class-name selectors) ----
-  const OPTION_KEYS = ['layout', 'platform', 'limit', 'base'];
+  const OPTION_KEYS = ['layout', 'platform', 'limit', 'base', 'overflow'];
   const pick = ds => Object.fromEntries(OPTION_KEYS.filter(k => ds && ds[k] != null && ds[k] !== '').map(k => [k, ds[k]]));
   const scriptOpts = pick(ME && ME.dataset);
   const claim = el => {

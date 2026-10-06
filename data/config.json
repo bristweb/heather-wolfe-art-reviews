@@ -43,7 +43,8 @@
     "diversity_window_days": 548,
     "date_locale": "en-US",
     "date_options": { "year": "numeric", "month": "short", "day": "numeric" },
-    "font_timeout_ms": 1200
+    "font_timeout_ms": 1200,
+    "show_rating_only_reviews": false
   },
   "rating_labels": [
     { "min": 4.75, "label": "Excellent" },
