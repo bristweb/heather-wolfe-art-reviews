@@ -10,10 +10,11 @@ Every public review of **[Heather Wolfe Art](https://heatherwolfeart.com/)** (li
 1. [Embed](#embed)
 2. [What's here](#whats-here)
 3. [Reviews and platforms](#reviews-and-platforms)
-4. [Sync tooling](#sync-tooling)
-5. [Look and feel](#look-and-feel)
-6. [Structured data](#structured-data)
-7. [Credits](#credits)
+4. [Accolades](#accolades)
+5. [Sync tooling](#sync-tooling)
+6. [Look and feel](#look-and-feel)
+7. [Structured data](#structured-data)
+8. [Credits](#credits)
 
 ## Embed
 
@@ -51,10 +52,11 @@ All options (layout, platform filter, limit, fitting options): see the [reviews-
 
 ```
 config.json           business, platforms (tab order, links, scrape URLs, reported counts), links, display,
-                      strings, schema, avatar palette, summary, reviews.years
+                      strings, schema, avatar palette, summary, accolades, reviews.years
 reviews/<year>.json   the reviews dated in that year, newest first (2016-2026)
 images/reviewers/     avatars: <platform>-<platform_review_id>.<ext> (filesystem-safe)
-icons/                platform logos (google, yelp, zola, facebook) + social icons
+icons/                platform logos (google, yelp, zola, facebook) + social icons + award badges
+                      (see icons/ATTRIBUTION.md)
 theme/                theme.css (colors, radius, font) + self-hosted Inter
 scripts/              this site's sync tooling (never loaded by the widget)
 .github/workflows/    validate.yml: runs the shared validator on every push
@@ -79,6 +81,15 @@ The record format is documented in [reviews-widget: Data repo format](https://gi
 - **Featured reviews:** the home page's "Testimonials" (Brendan C, Haley R, Ciera S) are excerpts of Google reviews; those records have `featured_on_website: true` (kept when records are refreshed).
 - **Rating-only reviews:** 5 reviews have no text (3 Google rating-only, 2 empty Facebook recommendations). They count in the header (76 reviews) but get no card (71 review cards).
 - **Instagram:** heatherwolfeart.com shows an Instagram feed via a third-party embed (widget id `1677b7d0-6774-4670-903d-ffb3b4c9ed6c`); it is not a reviews widget and no review data comes from it.
+
+## Accolades
+
+Award badges in `config.json` `accolades` (sorted by the widget as `YYYY-12-31` so each leads its year). Icons and source URLs: [`icons/ATTRIBUTION.md`](icons/ATTRIBUTION.md).
+
+| Award | Year | Link |
+|---|---|---|
+| Best of Zola | 2026 | https://www.zola.com/wedding-vendors/wedding-extras/heather-wolfe-art-live-painting |
+| Cityview Best of the Best (Painter – Portrait) | 2021 | https://cityviewmag.com/best-of-the-best-2021/ |
 
 ## Sync tooling
 
@@ -127,4 +138,4 @@ New reviews are added to `reviews/<year>.json` (a new year gets a new file and i
 
 ## Credits
 
-Platform logos: **Google** is Google's multi-color Maps pin (the 2020 Google Maps icon, via Wikimedia Commons); **Zola** is Zola's double-heart mark in their "marine" #183b54, from zola.com's own asset CDN (turned white on the active tab); **Yelp** and **Facebook** are from [Simple Icons](https://simpleicons.org/) (CC0 1.0). All marks belong to their owners and are used only to identify where each review was posted. The brand colors (#204a60, #3c4e58, #85a0ad, #bfcdd4, #e2edf2, #999) and the Inter typeface ([OFL](theme/fonts/OFL.txt)) come from heatherwolfeart.com. Review content belongs to its authors and is shown with a link back to the original.
+Platform logos: **Google** is Google's multi-color Maps pin (the 2020 Google Maps icon, via Wikimedia Commons); **Zola** is Zola's double-heart mark in their "marine" #183b54, from zola.com's own asset CDN (turned white on the active tab); **Yelp** and **Facebook** are from [Simple Icons](https://simpleicons.org/) (CC0 1.0). Award badges: **Cityview Best of the Best** from the badge shown on [heatherwolfeart.com](https://heatherwolfeart.com/) (link back to Cityview’s 2021 listings); **Best of Zola 2026** from Zola’s official badge CDN on her storefront. Details in [`icons/ATTRIBUTION.md`](icons/ATTRIBUTION.md). All marks belong to their owners and are used only to identify where each review was posted or which award was received. The brand colors (#204a60, #3c4e58, #85a0ad, #bfcdd4, #e2edf2, #999) and the Inter typeface ([OFL](theme/fonts/OFL.txt)) come from heatherwolfeart.com. Review content belongs to its authors and is shown with a link back to the original.

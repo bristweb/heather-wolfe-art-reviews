@@ -134,7 +134,7 @@
     }
   ],
   "strings": {
-    "loading": "Loading reviews…",
+    "loading": "Loading reviews\u2026",
     "unavailable": "Reviews are unavailable right now.",
     "tabs_aria": "Filter reviews by platform",
     "tab_all": "All",
@@ -185,5 +185,19 @@
       2017,
       2016
     ]
-  }
+  },
+  "accolades": [
+    {
+      "label": "Best of Zola",
+      "year": 2026,
+      "icon": "icons/best-of-zola-2026.png",
+      "url": "https://www.zola.com/wedding-vendors/wedding-extras/heather-wolfe-art-live-painting"
+    },
+    {
+      "label": "Cityview Best of the Best",
+      "year": 2021,
+      "icon": "icons/cityview-best-of-the-best.png",
+      "url": "https://cityviewmag.com/best-of-the-best-2021/"
+    }
+  ]
 }
