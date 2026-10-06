@@ -21,21 +21,25 @@ import argparse, datetime, json, os, re, subprocess, sys, urllib.parse, urllib.r
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RAW = os.path.join(ROOT, '.pull')
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36'
-ZOLA_URL = 'https://www.zola.com/wedding-vendors/wedding-extras/heather-wolfe-art-live-painting'
+# What to scrape comes from data/sources.json (`scrape_url` per platform); actor ids/options are generic.
+with open(os.path.join(ROOT, 'data', 'sources.json')) as _f:
+    SCRAPE = {p['platform']: p.get('scrape_url') for p in json.load(_f)['platforms'] if p.get('reviews')}
+ZOLA_URL = SCRAPE.get('zola')
 
 ACTORS = {
     'google': ('compass~Google-Maps-Reviews-Scraper', lambda since: {
-        'startUrls': [{'url': 'https://www.google.com/maps?cid=8046363929124098631'}],
+        'startUrls': [{'url': SCRAPE['google']}],
         'maxReviews': 500, 'reviewsSort': 'newest', 'language': 'en', 'reviewsOrigin': 'all',
         'personalData': True, **({'reviewsStartDate': since} if since else {})}),
     'yelp': ('web_wanderer~yelp-reviews-scraper', lambda since: {
-        'biz_urls': ['https://www.yelp.com/biz/heather-wolfe-art-knoxville'],
+        'biz_urls': [SCRAPE['yelp']],
         'reviews_limit': 200, 'reviews_sort': 'newest', 'include_personal_data': True,
         **({'date_from': since} if since else {})}),
     'facebook': ('apify~facebook-reviews-scraper', lambda since: {
-        'startUrls': [{'url': 'https://www.facebook.com/HeatherWolfeArt/reviews'}],
+        'startUrls': [{'url': SCRAPE['facebook']}],
         'resultsLimit': 100, **({'onlyReviewsNewerThan': since} if since else {})}),
 }
+ACTORS = {k: v for k, v in ACTORS.items() if SCRAPE.get(k)}  # only platforms this site lists in sources.json
 
 
 def latest_dates():
@@ -102,11 +106,12 @@ def main():
                           for p, (act, b) in ACTORS.items()}, indent=2))
         return
     args = []
-    try:
-        print('zola (direct):', pull_zola(os.path.join(RAW, 'zola.json')), 'reviews on page')
-        args += ['--zola', os.path.join(RAW, 'zola.json')]
-    except Exception as e:
-        print('zola failed:', e, file=sys.stderr)
+    if ZOLA_URL:
+        try:
+            print('zola (direct):', pull_zola(os.path.join(RAW, 'zola.json')), 'reviews on page')
+            args += ['--zola', os.path.join(RAW, 'zola.json')]
+        except Exception as e:
+            print('zola failed:', e, file=sys.stderr)
     for plat, (actor, build) in ACTORS.items():
         path = os.path.join(RAW, f'{plat}.json')
         if a.from_raw:

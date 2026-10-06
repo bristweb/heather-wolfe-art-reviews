@@ -5,7 +5,7 @@ Usage:
   python3 scripts/import_reviews.py --google google.json --yelp yelp.json \
       --facebook fb.json --zola zola_reviews.json
 
-Raw inputs (see README "Re-pulling reviews"):
+Raw inputs (see README "Weekly pull"):
   google   : Apify compass/Google-Maps-Reviews-Scraper dataset items (JSON array)
   yelp     : Apify web_wanderer/yelp-reviews-scraper dataset items
   facebook : Apify apify/facebook-reviews-scraper dataset items
@@ -26,21 +26,16 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REV_DIR = os.path.join(ROOT, 'data', 'reviews')
 IMG_DIR = os.path.join(ROOT, 'data', 'images', 'reviewers')
 NOW = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat().replace('+00:00', 'Z')
-SOURCES = {
-    'google': 'https://g.page/r/CUdS9bBcbapvEAE/review',
-    'yelp': 'https://www.yelp.com/biz/heather-wolfe-art-knoxville',
-    'facebook': 'https://www.facebook.com/HeatherWolfeArt/reviews',
-    'zola': 'https://www.zola.com/wedding-vendors/wedding-extras/heather-wolfe-art-live-painting',
-}
-GOOGLE_PLACE_REVIEWS = 'https://search.google.com/local/reviews?placeid=ChIJ2V86YMkXXIgRR1L1sFxtqm8'
-# Home-page "Testimonials" on heatherwolfeart.com are excerpts of these Google reviews.
-FEATURED = {  # Google review ids of the three home-page testimonials (Brendan C., Haley R., Ciera S.)
-    'ChZDSUhNMG9nS0VJQ0FnSURuNEw3MUNREAE',
-    'ChZDSUhNMG9nS0VJQ0FnSUM4bS1LNWJBEAE',
-    'ChZDSUhNMG9nS0VJQ0FnSUNHaklMaFVREAE',
-}
-# initials-avatar colors from the heatherwolfeart.com palette (#204a60 / #3c4e58 / #85a0ad family)
-PALETTE = ['#204A60', '#3C4E58', '#85A0AD', '#2F6680', '#5B7685', '#4A6B7C']
+# Everything site-specific comes from data/: review-page URLs and featured review ids from data/sources.json,
+# the initials-avatar palette from data/config.json.
+with open(os.path.join(ROOT, 'data', 'sources.json')) as _f:
+    _SRC = {p['platform']: p for p in json.load(_f)['platforms']}
+with open(os.path.join(ROOT, 'data', 'config.json')) as _f:
+    _AV = json.load(_f).get('avatars', {})
+REVIEW_PAGE = {k: v.get('review_page_url') for k, v in _SRC.items()}  # fallback link when a review has no own URL
+FEATURED = set(_SRC.get('google', {}).get('featured_on_website_review_ids', []))
+PALETTE = _AV.get('initials_palette') or ['#555555']
+INITIALS_TEXT = _AV.get('initials_text_color', '#fff')
 
 
 def slugify(s):
@@ -73,7 +68,7 @@ def initials_svg(name, path):
     svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="{html.escape(name or "")}">'
            f'<rect width="120" height="120" rx="60" fill="{color}"/>'
            f'<text x="60" y="60" dy=".35em" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" '
-           f'font-size="46" font-weight="600" fill="#fff">{html.escape(ini)}</text></svg>')
+           f'font-size="46" font-weight="600" fill="{INITIALS_TEXT}">{html.escape(ini)}</text></svg>')
     with open(path, 'w') as f:
         f.write(svg)
 
@@ -113,7 +108,7 @@ def from_google(x):
                 photo_dl=re.sub(r'=s\d+.*$', '=s160-c', photo) if photo else None,
                 profile=x.get('reviewerUrl'), rating=x.get('stars'),
                 text=x.get('text') or '', date=iso(x['publishedAtDate']),
-                url=x.get('reviewUrl') or GOOGLE_PLACE_REVIEWS,
+                url=x.get('reviewUrl') or REVIEW_PAGE['google'],
                 reply=reply(x.get('responseFromOwnerText'), x.get('responseFromOwnerDate')),
                 extra={'featured_on_website': x['reviewId'] in FEATURED,
                        'reviewer_review_count': x.get('reviewerNumberOfReviews'),
@@ -127,7 +122,7 @@ def from_yelp(x):
     pr = x.get('publicReply') or {}
     return dict(platform='yelp', pid=x['reviewEncid'], name=a.get('name'), photo=a.get('profile_photo'),
                 profile=None, rating=x.get('rating'), text=x.get('text') or '', date=iso(x['reviewDate']),
-                url=x.get('reviewUrl') or SOURCES['yelp'],
+                url=x.get('reviewUrl') or REVIEW_PAGE['yelp'],
                 reply=reply(pr.get('text'), pr.get('created_at')),
                 extra={'reviewer_review_count': a.get('review_count'),
                        'review_image_urls': [ph.get('url') for ph in x.get('photos') or [] if ph.get('url')] or None,
@@ -138,7 +133,7 @@ def from_facebook(x):
     u = x.get('user') or {}
     return dict(platform='facebook', pid=x['id'], name=u.get('name'), photo=u.get('profilePic'),
                 profile=u.get('profileUrl'), rating=None, text=x.get('text') or '', date=iso(x['date']),
-                url=x.get('url') or SOURCES['facebook'], reply=None,
+                url=x.get('url') or REVIEW_PAGE['facebook'], reply=None,
                 extra={'recommended': bool(x.get('isRecommended')), 'tags': x.get('tags') or None})
 
 
@@ -146,7 +141,7 @@ def from_zola(x):
     resp = next(iter(x.get('responses') or []), {}) or {}
     return dict(platform='zola', pid=x['reviewUuid'], name=x.get('reviewerName'), photo=x.get('reviewerPhotoUrl'),
                 profile=None, rating=x.get('overallRating'), text=x.get('reviewText') or '', date=iso(x['createdAt']),
-                url=SOURCES['zola'] + '#reviews',
+                url=REVIEW_PAGE['zola'],
                 reply=reply(resp.get('responseText') or x.get('responseText'), resp.get('createdAt') or x.get('respondedAt')),
                 extra={'title': x.get('title'),
                        'review_image_ids': [ph.get('imageUuid') for ph in x.get('reviewPhotos') or []] or None})

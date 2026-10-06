@@ -6,7 +6,9 @@ on:
     paths:
       - 'data/reviews/**'
       - '!data/reviews/index.json'
+      - 'data/images/reviewers/**'
       - 'scripts/build-index.mjs'
+      - '.github/workflows/build-index.yml'
   workflow_dispatch:
 
 permissions:

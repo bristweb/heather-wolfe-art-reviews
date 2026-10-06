@@ -1,10 +1,188 @@
-# Heather Wolfe Art — reviews (social proof)
+# Heather Wolfe Art — reviews widget
 
-A static, database-free record of every public review of **[Heather Wolfe Art](https://heatherwolfeart.com/)** (live wedding & event painting, Knoxville TN), plus an embeddable reviews widget modeled on the Elfsight-style widgets.
+A static, database-free collection of every public review of **[Heather Wolfe Art](https://heatherwolfeart.com/)** (live wedding & event painting, Knoxville TN), plus an embeddable reviews widget in the style of Elfsight. Everything is plain files served by GitHub Pages: no server, no database, no third-party widget service.
 
 - **Live widget:** https://bristweb.github.io/heather-wolfe-art-reviews/
-- **Embeddable version:** https://bristweb.github.io/heather-wolfe-art-reviews/embed.html (same bare widget; both pages have no page chrome)
-- **Manifest (all reviews merged):** https://bristweb.github.io/heather-wolfe-art-reviews/data/reviews/index.json
+- **Iframe page:** https://bristweb.github.io/heather-wolfe-art-reviews/embed.html
+- **All reviews as JSON:** https://bristweb.github.io/heather-wolfe-art-reviews/data/reviews/index.json
+
+The code is generic. Everything specific to this business (reviews, platforms, links, colors, fonts, icons, text) lives in `data/`, so the repo can be [reused for another site](#reuse-for-another-site) by swapping that one folder.
+
+## Contents
+
+1. [Embed on your site](#embed-on-your-site)
+   - [JavaScript embed (preferred)](#javascript-embed-preferred)
+   - [Iframe embed (alternative)](#iframe-embed-alternative)
+2. [Options and customization](#options-and-customization)
+3. [Reuse for another site](#reuse-for-another-site)
+4. [Folder layout](#folder-layout)
+5. [Review data and schema](#review-data-and-schema)
+6. [Adding and updating reviews](#adding-and-updating-reviews)
+7. [Weekly pull (monitoring)](#weekly-pull-monitoring)
+8. [Card order](#card-order)
+9. [Header behavior](#header-behavior)
+10. [Privacy and presentation](#privacy-and-presentation)
+11. [Technical details](#technical-details)
+12. [Credits](#credits)
+
+---
+
+## Embed on your site
+
+### JavaScript embed (preferred)
+
+Paste this where the widget should appear:
+
+```html
+<div class="reviews-widget"></div>
+<script src="https://bristweb.github.io/heather-wolfe-art-reviews/assets/js/reviews-widget.js" defer></script>
+```
+
+That's all. The script works out the repo address from its own URL. It then loads the stylesheets (`assets/css/reviews-widget.css` and `data/theme/theme.css`), the settings (`data/config.json`) and the reviews (`data/reviews/index.json`), and renders into the `div`.
+
+- The widget renders directly in your page, so it sizes itself naturally and needs no resize script.
+- It stays invisible until its font and first layout are ready, then fades in once, with no font swap or layout jump.
+- You can put several widgets on one page (for example a grid of Zola reviews and a carousel of everything). They share a single download.
+- The widget's classes all start with `rw-`, its font has its own family name, and a small reset keeps common host styles (line height, image borders, text alignment) from leaking in.
+
+With options:
+
+```html
+<div class="reviews-widget" data-layout="grid" data-platform="google" data-limit="12"></div>
+<script src="https://bristweb.github.io/heather-wolfe-art-reviews/assets/js/reviews-widget.js" defer></script>
+```
+
+The available options are listed under [Options and customization](#options-and-customization). Include the `<script>` once per page, even with several widgets.
+
+If your site builder loads scripts in a way that hides the script's own URL (rare, e.g. as an ES module), add `data-base="https://bristweb.github.io/heather-wolfe-art-reviews/"` to the `div`.
+
+### Iframe embed (alternative)
+
+Use this when your site builder only accepts iframes, or when you want the widget fully isolated from your page's CSS:
+
+```html
+<iframe id="reviews-widget" src="https://bristweb.github.io/heather-wolfe-art-reviews/embed.html"
+        title="Reviews" loading="lazy" scrolling="no" style="width:100%;border:0;height:420px"></iframe>
+<script>
+  // auto-resize the iframe to the widget's height
+  addEventListener('message', function (e) {
+    if (e.data && e.data.type === 'reviews-widget-height')
+      document.getElementById('reviews-widget').style.height = e.data.height + 'px';
+  });
+</script>
+```
+
+Options go in the query string: `embed.html?layout=grid&platform=google&limit=12`. Without the resize script, set a fixed height. The carousel is about 410px tall at desktop widths.
+
+`index.html` and `embed.html` are the same bare page, with no page chrome and a transparent background.
+
+---
+
+## Options and customization
+
+### Per-embed options
+
+| Attribute (JS embed) | Query param (iframe / host page) | Values | Default |
+|---|---|---|---|
+| `data-layout` | `layout` | `carousel` (one scrolling row with arrows) or `grid` (all cards, wrapping) | `display.layout` in `data/config.json` (`carousel`) |
+| `data-platform` | `platform` | `all`, or a platform key from `data/config.json` (`google`, `yelp`, `zola`, `facebook`) | `all` |
+| `data-limit` | `limit` | maximum number of cards (`0` = no limit) | `0` |
+| `data-base` | n/a | repo root URL, ending in `/` | worked out from the script URL |
+
+Query parameters on the page that hosts the widget override the `data-` attributes (this applies to every widget on that page).
+
+The platform tabs still let visitors switch filters. The header's rating and review count always follow the selected tab.
+
+### Site-wide settings: `data/config.json`
+
+| Key | What it controls |
+|---|---|
+| `business.name`, `business.website` | the business this repo is for (reference) |
+| `platforms` | one entry per platform, in tab order: `name`, `icon` (repo path), `write_url` (the "Write a review" link when that tab is active), `page_url`, `card_link` (`"review"` = link each card to its individual review; `"page"` = link to `page_url`), optional `invert_icon_when_active` (makes a dark icon white on the active tab) |
+| `default_write_platform` | which platform's `write_url` the button uses on the "All" tab |
+| `display.layout` | default layout |
+| `display.snippet_chars` | snippet length in characters (`0` = full text) |
+| `display.abbreviate_last_names` | `true`: "Kylee M." and surnames in the snippet shown as initials; `false`: full names |
+| `display.max_same_platform_run`, `display.diversity_window_days` | card-order diversity (see [Card order](#card-order)) |
+| `display.date_locale`, `display.date_options` | date formatting (`Intl.DateTimeFormat` locale and options) |
+| `display.font_timeout_ms` | how long to wait for the webfont before showing the fallback face |
+| `rating_labels` | words shown next to the score (`min` average → label) |
+| `strings` | every piece of visible or screen-reader text ("Write a review", "Based on", "View on {platform}", aria labels, …), with `{placeholders}` |
+| `avatars.initials_palette`, `avatars.initials_text_color` | colors of the generated initials avatars (used by the import script) |
+
+### Look and feel: `data/theme/theme.css`
+
+This file holds the `@font-face` rules (fonts in `data/theme/fonts/`) and CSS custom properties on `.rw-root`, which the generic stylesheet reads:
+
+| Variable | Used for | Heather Wolfe Art |
+|---|---|---|
+| `--rw-font` | font stack (the first family is the one the widget waits for) | `"HWA Inter"`, metric-matched Arial fallback, system fonts |
+| `--rw-letter-spacing` | body letter spacing | `-.01em` |
+| `--rw-ink` / `--rw-body` / `--rw-muted` | names and score / review text / dates and "Based on" | `#000` / `#444` / `#999` |
+| `--rw-line` / `--rw-line-strong` | borders / tab hover border | `#dfe7eb` / `#bfcdd4` |
+| `--rw-card` | card, header, tab, and arrow background | `#fff` |
+| `--rw-tint` | count chips, avatar placeholder | `#e2edf2` |
+| `--rw-accent` / `--rw-accent-2` | active tab, button, links, focus ring, card hover border / hover shade | `#204a60` / `#3c4e58` |
+| `--rw-on-accent` / `--rw-on-accent-soft` | text on the accent / count chip on the active tab | `#fff` / `rgba(255,255,255,.18)` |
+| `--rw-star` / `--rw-star-off` | filled / empty stars | `#f5b301` / `#d5dee3` |
+| `--rw-nav-shadow` | carousel arrow shadow | `0 2px 10px rgba(32,74,96,.12)` |
+| `--rw-radius` | card and header corner radius | `14px` |
+| `--rw-max-width` | widget max width (centered) | `1200px` |
+
+On a page that already uses the JS embed you can also override any of these in your own CSS, e.g. `.reviews-widget{--rw-accent:#8a2be2}`.
+
+---
+
+## Reuse for another site
+
+The widget code (`assets/`, `index.html`, `embed.html`, `scripts/`, the workflow) contains nothing specific to Heather Wolfe Art. To run it for another business:
+
+1. **Duplicate the repo** (use it as a template or copy it) and enable GitHub Pages (branch `main`, root).
+2. **Replace `data/`:**
+
+   | Path | Replace with |
+   |---|---|
+   | `data/config.json` | the business name and site, each platform's name, icon, write-a-review URL, and page URL, strings (any language), display options, and the initials-avatar palette |
+   | `data/theme/theme.css` + `data/theme/fonts/` | the site's fonts (`@font-face`) and colors (`--rw-*` variables). Any family name works; list it first in `--rw-font` |
+   | `data/icons/` | one SVG per platform key (current set: Google, Yelp, Zola, Facebook, plus social icons) |
+   | `data/sources.json` | the platforms the business is listed on: `scrape_url` (what the pull script scrapes) and `review_page_url` (fallback link) per review platform, plus optional `featured_on_website_review_ids` |
+   | `data/reviews/` | empty it (keep the folder) |
+   | `data/images/reviewers/` | empty it (keep the folder) |
+
+3. **Collect reviews:** run the [weekly pull](#weekly-pull-monitoring) with the `--all` flag, or add review files by hand. Then commit. The workflow rebuilds `data/reviews/index.json`.
+4. **Update the URLs** in this README (embed snippets, links).
+
+The importer understands Google, Yelp, Facebook, and Zola scraper output. Any other platform works in the widget if it has an entry in `config.json`, an icon, and review files (added by hand, or with a small converter added to `scripts/import_reviews.py`).
+
+---
+
+## Folder layout
+
+```
+data/                              EVERYTHING SITE-SPECIFIC (swap this folder to reuse the repo)
+  config.json                      business, platforms (names, icons, write/page URLs, card links), strings, display options
+  theme/theme.css                  @font-face + CSS custom properties (colors, radius, font stack)
+  theme/fonts/                     self-hosted Inter (OFL, see OFL.txt)
+  icons/                           platform logos (Simple Icons, CC0; zola.svg is the mark heatherwolfeart.com uses)
+  sources.json                     where reviews come from: scrape URLs, review-page URLs, reported counts, social profiles
+  reviews/                         one JSON file per review: <platform>-<yyyy-mm-dd>-<first-name>-<last-initial>.json
+  reviews/index.json               GENERATED: every review merged + summary (do not edit by hand)
+  images/reviewers/                downloaded reviewer avatars (or generated initials SVGs)
+assets/                            GENERIC WIDGET CODE
+  js/reviews-widget.js             loads data/config.json + data/reviews/index.json + CSS, renders the widget
+  css/reviews-widget.css           layout and behavior; reads the --rw-* variables from the theme
+index.html, embed.html             bare widget pages (no chrome, transparent, noindex): both safe to iframe
+scripts/build-index.mjs            validates data/reviews/*.json and writes data/reviews/index.json (Node, no dependencies)
+scripts/import_reviews.py          raw scraper output -> review files (new only by default) + avatar download
+scripts/pull_reviews.py            pull helper: Zola direct, Apify inputs/imports for Google/Yelp/Facebook, then build
+.github/workflows/build-index.yml  rebuilds and commits data/reviews/index.json when data/reviews/ or the build script changes
+```
+
+A static site can't list a folder, so the widget reads the generated `data/reviews/index.json` instead.
+
+---
+
+## Review data and schema
 
 | Platform | Reviews stored | Platform-reported | Source page |
 |---|---|---|---|
@@ -13,57 +191,24 @@ A static, database-free record of every public review of **[Heather Wolfe Art](h
 | Zola | 5 | 5.0 ★ · 5 reviews | https://www.zola.com/wedding-vendors/wedding-extras/heather-wolfe-art-live-painting |
 | Facebook | 9 | 100% recommend · 16 reviews (only 9 public without login) | https://www.facebook.com/HeatherWolfeArt/reviews |
 
-The full list of platforms linked from heatherwolfeart.com (including social profiles with no review system) is in [`data/sources.json`](data/sources.json).
+Every platform linked from heatherwolfeart.com, including social profiles with no review system, is listed in [`data/sources.json`](data/sources.json).
 
-## Data policy
-
-- **Storage: complete.** Each review file stores everything collected: the reviewer's full name, profile URL, and avatar source URL, the full review text, Heather's reply (text and date), the individual review URL (Facebook post URLs included), dates, and platform extras. `data/reviews/index.json` carries the same full records.
-- **Presentation: abbreviated.** The widget computes everything visible at render time. It shows **first name + last initial** (e.g. "Kylee M."). It clips text to a **~160-character snippet** at a word boundary, and the reviewer's own surname inside the snippet is shown as an initial. Screen-reader labels use the abbreviated name too.
-- **Facebook links:** for now the widget links Facebook cards to the page's reviews tab (https://www.facebook.com/HeatherWolfeArt/reviews). The individual post URLs are stored in `review_url` for future use.
-- File names use the abbreviated name: `<platform>-<yyyy-mm-dd>-<first>-<initial>.json`.
-
-## Layout
-
-Content (review data) lives under `data/`. Code and UI assets live everywhere else.
-
-```
-data/                          CONTENT
-  reviews/                     one JSON file per review -> <platform>-<yyyy-mm-dd>-<first-name>-<last-initial>.json
-  reviews/index.json           GENERATED public manifest (minimal fields + summary). Do not edit by hand.
-  images/reviewers/            downloaded reviewer avatars (or generated initials SVGs)
-  sources.json                 monitored platforms and their review-page URLs
-assets/                        UI ASSETS (part of the widget code)
-  css/reviews-widget.css       widget styles (brand colors/fonts from heatherwolfeart.com)
-  js/reviews-widget.js         widget script (fetches data/reviews/index.json and renders)
-  icons/                       platform logos (Simple Icons, CC0; zola.svg is the exact mark used on heatherwolfeart.com)
-  fonts/                       self-hosted Inter (OFL, see fonts/OFL.txt)
-index.html, embed.html         bare widget pages (no page chrome, transparent background): both are safe to iframe
-scripts/build-index.mjs        validates data/reviews/*.json and writes data/reviews/index.json (Node, no deps)
-scripts/import_reviews.py      raw scraper output -> review files (new only by default) + avatar download
-scripts/pull_reviews.py        monitor helper: Zola direct, Apify inputs/imports for Google/Yelp/Facebook, then build
-.github/workflows/build-index.yml  rebuilds and commits data/reviews/index.json whenever data/reviews/ changes
-```
-
-Platform icons are treated as UI assets, not content: they're fixed brand marks the widget's code refers to by platform key (`assets/icons/<platform>.svg`), and adding reviews never changes them.
-
-Everything is static files served by GitHub Pages. Because a static site can't list a directory, the widget reads the generated manifest `data/reviews/index.json` instead of the folder.
-
-## Review file schema
+One file per review in `data/reviews/`:
 
 ```jsonc
 {
   "id": "google-7ef4eeba2dbb",            // stable: <platform>-<sha1(platform_review_id)[:12]>
-  "platform": "google",                    // google | yelp | zola | facebook | (any assets/icons/<platform>.svg)
+  "platform": "google",                    // a platform key from data/config.json
   "platform_review_id": "Ci9DQUlRQUNv…",  // the platform's own review id
   "reviewer_name": "Kylee Morris",         // full name as shown on the platform (widget shows "Kylee M.")
   "reviewer_profile_url": "https://www.google.com/maps/contrib/…",  // Google / Facebook; null otherwise
   "reviewer_image": "data/images/reviewers/google-2026-10-05-kylee-m.jpg",  // downloaded copy (repo path)
   "reviewer_image_source_url": "https://lh3.googleusercontent.com/…",       // where it came from (may expire), or null
   "rating": 5,                             // 1-5, or null for Facebook (recommend/not, no stars)
-  "text": "full review text",              // complete; "" for rating-only reviews (widget clips to ~160 chars)
+  "text": "full review text",              // complete; "" for rating-only reviews
   "date": "2026-10-05T20:19:50Z",          // ISO 8601, UTC
   "review_url": "https://www.google.com/maps/reviews/data=…",  // individual review link (Facebook: post URL)
-  "owner_reply": { "text": "…", "date": "2026-10-05T21:47:17Z" },  // Heather's public reply, or null
+  "owner_reply": { "text": "…", "date": "2026-10-05T21:47:17Z" },  // the owner's public reply, or null
   "collected_at": "2026-10-05T22:00:27Z",
   "updated_at": "2026-10-06T00:09:42Z",   // set when an existing review is refreshed (--update)
   "source": "direct",                      // 'elfsight' or 'direct'
@@ -76,30 +221,50 @@ Everything is static files served by GitHub Pages. Because a static site can't l
   "reviewer_is_local_guide": true,         // Google
   "language": "en",
   "tags": ["…"],                           // Facebook
-  "featured_on_website": true              // quoted in the heatherwolfeart.com home-page Testimonials
+  "featured_on_website": true              // quoted in the website's home-page Testimonials
 }
 ```
 
-`data/reviews/index.json` holds every full review record plus `file` (source path) and `has_text`, sorted newest first, and a `summary` with counts and average ratings per platform. `build-index.mjs` validates required fields, ratings, dates, unique ids, and that each `reviewer_image` exists under `data/images/reviewers/`.
+`review_url` is the individual review link where the platform provides one: Google review links, Yelp `?hrid=` links, and Facebook post URLs. Zola has no per-review URL, so it stores the storefront's reviews section.
 
-`review_url` is the individual review link where the platform provides one: Google review links, Yelp `?hrid=` links, and Facebook post URLs. Zola has no per-review URL, so it stores the storefront's reviews section. The widget currently sends Facebook cards to the page's reviews tab instead of the post (see Data policy).
+`data/reviews/index.json` holds every full record plus `file` (source path) and `has_text`, sorted newest first. It also has a `summary` with counts and average ratings per platform.
 
-## Adding or updating a review
+---
 
-**By hand:** create `data/reviews/<platform>-<yyyy-mm-dd>-<first>-<initial>.json` following the schema (copy an existing file), put the avatar in `data/images/reviewers/` with the same stem (and set `reviewer_image` to that path), and commit to `main`. The *Build reviews index* Action validates all files and commits a refreshed `reviews/index.json`, and Pages redeploys. To check locally, run `node scripts/build-index.mjs`.
+## Adding and updating reviews
 
-## Monitoring / re-pulling
+**By hand:**
 
-Free, direct methods are used wherever they work. Apify is used only where they don't:
+1. Create `data/reviews/<platform>-<yyyy-mm-dd>-<first>-<initial>.json` following the schema (copy an existing file).
+2. Put the avatar in `data/images/reviewers/` with the same stem, and set `reviewer_image` to that path.
+3. Commit to `main`.
+
+The *Build reviews index* Action then validates every file, commits a refreshed `data/reviews/index.json`, and Pages redeploys (about a minute). To check locally, run `node scripts/build-index.mjs`.
+
+**From scraper output:** `python3 scripts/import_reviews.py --google g.json --yelp y.json --facebook f.json --zola z.json` writes files for **new** reviews only. Add `--update` to also refresh existing ones; they keep their file names, avatars, and `collected_at`. Avatars are downloaded (never hotlinked). If a platform has no photo, an initials SVG is generated in the `config.json` palette.
+
+---
+
+## Weekly pull (monitoring)
+
+Free, direct methods are used wherever they work. Apify is used only where they don't. What to scrape comes from `scrape_url` in `data/sources.json`.
 
 | Platform | Method | Actor / source | Input (date window added automatically) |
 |---|---|---|---|
-| Zola | **direct**, free | `curl` storefront, parse `<script id="__NEXT_DATA__">` | n/a |
+| Zola | **direct**, free | fetch the storefront, parse `<script id="__NEXT_DATA__">` | n/a |
 | Google | Apify | `compass/Google-Maps-Reviews-Scraper` | `{"startUrls":[{"url":"https://www.google.com/maps?cid=8046363929124098631"}],"maxReviews":500,"reviewsSort":"newest","language":"en","reviewsOrigin":"all","personalData":true,"reviewsStartDate":"<YYYY-MM-DD>"}` |
 | Yelp | Apify | `web_wanderer/yelp-reviews-scraper` | `{"biz_urls":["https://www.yelp.com/biz/heather-wolfe-art-knoxville"],"reviews_limit":200,"reviews_sort":"newest","include_personal_data":true,"date_from":"<YYYY-MM-DD>"}` |
 | Facebook | Apify | `apify/facebook-reviews-scraper` | `{"startUrls":[{"url":"https://www.facebook.com/HeatherWolfeArt/reviews"}],"resultsLimit":100,"onlyReviewsNewerThan":"<YYYY-MM-DD>"}` |
 
-Why Apify is needed for those three: logged-out Google Maps shows a "limited view" with no reviews, yelp.com returns 403, and Facebook lists only a few recommendations without a login. `personalData` / `include_personal_data` are needed to get names, avatars, and profile links, which are stored in full. The date is the newest stored review on that platform minus 30 days, so a weekly run only pays for a few reviews (Google ≈ $0.0006/review, Yelp ≈ $0.0003, Facebook ≈ $0.0025). Each run is capped with `maxTotalChargeUsd`.
+Why Apify is needed for those three:
+
+- Logged-out Google Maps shows a "limited view" with no reviews.
+- yelp.com returns 403.
+- Facebook lists only a few recommendations without a login.
+
+`personalData` / `include_personal_data` are needed to get names, avatars, and profile links.
+
+The date window starts 30 days before the newest stored review on that platform, so a weekly run pays for only a few reviews (Google ≈ $0.0006/review, Yelp ≈ $0.0003, Facebook ≈ $0.0025). Each run is capped with `maxTotalChargeUsd`.
 
 **Weekly run.** Monitoring isn't a GitHub Actions job. It's a scheduled run on the Bristlecone box that uses the Apify connector:
 
@@ -113,59 +278,86 @@ python3 scripts/pull_reviews.py --from-raw   # pulls Zola directly, imports NEW 
 git add data/reviews data/images/reviewers && git commit -m "reviews: add new reviews $(date +%F)" && git push
 ```
 
-With an Apify API token instead of the connector, `APIFY_TOKEN=… python3 scripts/pull_reviews.py` runs the actors through the REST API itself. `.pull/` holds raw scraper output. It's git-ignored; the imported review files are the record. `--all` drops the date window (it still adds only reviews whose `id` isn't stored yet). `scripts/import_reviews.py --update` refreshes existing reviews.
+Other ways to run it:
 
-**About Elfsight:** the only Elfsight widget on heatherwolfeart.com is an **Instagram feed** (InstaShow, widget id `1677b7d0-6774-4670-903d-ffb3b4c9ed6c`, share link `https://1677b7d067744670903dffb3b4c9ed6c.elf.site`), not a reviews widget, so no review data comes from Elfsight. Its config is at `https://core.service.elfsight.com/p/boot/?page=https%3A%2F%2Fheatherwolfeart.com%2F&w=1677b7d0-6774-4670-903d-ffb3b4c9ed6c`. The home page's "Testimonials" (Brendan C, Haley R, Ciera S) are excerpts of Google reviews and are flagged `featured_on_website: true`.
+- **API token instead of the connector:** `APIFY_TOKEN=… python3 scripts/pull_reviews.py` runs the actors through the Apify REST API itself.
+- **Full re-pull:** `--all` drops the date window. It still adds only reviews whose `id` isn't stored yet.
+- **Refresh existing reviews:** `scripts/import_reviews.py --update`.
+
+`.pull/` holds raw scraper output. It's git-ignored; the imported review files are the record.
+
+**About Elfsight:** the only Elfsight widget on heatherwolfeart.com is an **Instagram feed** (InstaShow, widget id `1677b7d0-6774-4670-903d-ffb3b4c9ed6c`, share link `https://1677b7d067744670903dffb3b4c9ed6c.elf.site`), not a reviews widget, so no review data comes from Elfsight. Its config is at `https://core.service.elfsight.com/p/boot/?page=https%3A%2F%2Fheatherwolfeart.com%2F&w=1677b7d0-6774-4670-903d-ffb3b4c9ed6c`. The home page's "Testimonials" (Brendan C, Haley R, Ciera S) are excerpts of Google reviews. Their ids are in `data/sources.json`, and those reviews are flagged `featured_on_website: true`.
+
+---
 
 ## Card order
 
 The order is deterministic, so it's the same on every load:
 
-- **"All reviews": newest first, with gentle platform diversity.** For each slot, the widget takes the newest remaining review. If that review's platform matches the previous **2** cards, it takes the newest remaining review from a *different* platform instead, but only if that review is at most **~18 months (548 days)** older than the newest candidate. Otherwise it takes the newest review anyway.
+- **"All reviews": newest first, with gentle platform diversity.**
+  - For each slot, the widget takes the newest remaining review.
+  - If that review's platform matches the previous **2** cards, it takes the newest remaining review from a *different* platform instead.
+  - It only does that if the other review is at most **~18 months (548 days)** older than the newest candidate. Otherwise it takes the newest review anyway.
+  - Today the first 12 cards run Google, Google, Zola, repeated.
 - **Single-platform filter** (e.g. Yelp): newest first.
-- Ties are broken by `id`. Rating-only reviews (empty text) never become cards, but they still count in the header.
+- Ties are broken by `id`.
+- Rating-only reviews (empty text) never become cards, but they still count in the header (76 reviews, 71 cards).
 
-Constants `MAX_SAME_RUN` (2) and `DIVERSITY_WINDOW_DAYS` (548) are at the top of `assets/js/reviews-widget.js`.
+Both numbers are settings: `display.max_same_platform_run` and `display.diversity_window_days` in `data/config.json`.
 
-## Header layout
+---
 
-One compact row: rating on the left, platform filter tabs in the middle, **Write a review** on the right. The header responds to the widget's own width through CSS container queries (`container: hwa / inline-size` on `.hwa-root`), so it follows the iframe or embed width, not the browser window:
+## Header behavior
 
-- wider than ~1020px: tabs show icon, name, and count
-- ~1020px or less: tabs collapse to icon and count (the name stays in `title` / `aria-label`)
-- ~720px or less: tighter spacing, and the rating shows score, stars, and "76 reviews"
-- ~575px or less: tabs wrap onto a second line (last resort); ~320px or less: the button goes full width
+One compact row: rating on the left, platform filter tabs in the middle, **Write a review** on the right, all vertically centered. The header responds to the widget's own width through CSS container queries (`container: rw / inline-size` on `.rw-root`), so it follows the embed or iframe width, not the browser window:
 
-## Embedding on the website
+| Widget width | Header |
+|---|---|
+| > 1020px | one row: score, "Excellent", stars, "Based on N reviews" · tabs with icon, name, and count · button |
+| ≤ 1020px | tabs collapse to icon and count (the name stays in `title` / `aria-label`) |
+| ≤ 720px | compact: "Excellent" and "Based on" hidden (shows score, stars, "N reviews"), tighter tabs and button |
+| ≤ 575px | two-row grid: rating above tabs on the left, button spanning both rows on the right |
+| ≤ 450px | the button text wraps onto two lines |
+| ≤ 380px | fully stacked, full-width button |
 
-`index.html` and `embed.html` carry `<meta name="robots" content="noindex, nofollow, noarchive">` so search engines don't list them. This doesn't affect iframe embedding: the widget still works inside heatherwolfeart.com.
+The carousel shows 4 cards above 1024px, 3 at ≤ 1024px, 2 at ≤ 760px, and one card (88% wide, swipeable, no arrows) at ≤ 520px.
 
-**Option A, iframe (simplest, works in Framer's Embed component):**
+The "Write a review" button goes to the active platform's `write_url`; on the "All" tab it uses `default_write_platform` (Google).
 
-```html
-<iframe id="hwa-reviews" src="https://bristweb.github.io/heather-wolfe-art-reviews/embed.html"
-        style="width:100%;border:0;min-height:520px" loading="lazy" title="Heather Wolfe Art reviews"></iframe>
-<script>
-  // auto-resize to the widget's height
-  addEventListener('message', e => {
-    if (e.data && e.data.type === 'hwa-reviews-height')
-      document.getElementById('hwa-reviews').style.height = e.data.height + 'px';
-  });
-</script>
-```
+---
 
-Options via query string: `embed.html?layout=grid`, `?platform=google`, `?limit=12` (they can be combined).
+## Privacy and presentation
 
-**Option B, inline script (no iframe):**
+- **Storage is complete.** Each review file stores everything collected:
+  - the reviewer's full name, profile URL, and avatar source URL
+  - the full review text and the owner's reply (text and date)
+  - the individual review URL (Facebook post URLs included), dates, and platform extras
 
-```html
-<link rel="stylesheet" href="https://bristweb.github.io/heather-wolfe-art-reviews/assets/css/reviews-widget.css">
-<div class="hwa-reviews" data-base="https://bristweb.github.io/heather-wolfe-art-reviews/" data-layout="carousel"></div>
-<script src="https://bristweb.github.io/heather-wolfe-art-reviews/assets/js/reviews-widget.js" defer></script>
-```
+  `data/reviews/index.json` carries the same full records. The repo is public, so all of this is publicly readable.
+- **Presentation is abbreviated.** The widget computes everything visible at render time:
+  - Names show as **first name + last initial** (e.g. "Kylee M."). Couples like "Ann & Bob C." are kept.
+  - Text is clipped to a **~160-character snippet** at a word boundary.
+  - The reviewer's own surname inside the snippet is shown as an initial.
+  - Screen-reader labels use the abbreviated name too.
+  - Each card links to the original review on its platform.
+- **Facebook links:** for now, Facebook cards link to the page's reviews tab (`card_link: "page"` in `config.json`). The individual post URLs are stored in `review_url`; switching to them is a one-word config change (`"review"`).
+- File names use the abbreviated name: `<platform>-<yyyy-mm-dd>-<first>-<initial>.json`.
+- **Search engines:** `index.html` and `embed.html` carry `<meta name="robots" content="noindex, nofollow, noarchive">`. This doesn't affect embedding. The repo itself has no description, topics, or homepage link, but it's still public and findable through GitHub search.
 
-`data-layout` = `carousel` | `grid`, `data-platform` = `all` | `google` | `yelp` | `zola` | `facebook`, `data-limit` = number.
+---
+
+## Technical details
+
+- **Loading:** the script works out the repo root as `new URL('../../', document.currentScript.src)`, or uses `data-base`. In parallel it fetches `data/config.json` and `data/reviews/index.json` (`cache: no-cache`) and adds `<link>`s for `assets/css/reviews-widget.css` and `data/theme/theme.css`, unless the page already has them (`index.html` / `embed.html` include them in `<head>`). Everything is fetched once per page, however many widgets there are.
+- **No flash:** the root starts at `opacity: 0`. The widget waits for the stylesheets, then for weights 400, 700, and italic 300 of the first family in `--rw-font`. That wait has a timeout of `display.font_timeout_ms`; after it, the theme's metric-matched fallback face is used. After the first layout the widget fades in over 0.18s (instantly with reduced motion). The fonts use `font-display: block`.
+- **Accessibility:** each card is a single `<a>` (new tab, `rel="noopener"`) with an aria label like "Read Kylee M.'s review on Google (opens in a new tab)". Nothing inside a card is interactive. The tabs are `role="tab"` buttons with counts in their labels, star ratings have text labels, and focus rings are visible. Cards have no shadows: hover lifts them 2px with an accent border, and focus shows a 3px accent outline.
+- **Iframe height:** inside an iframe the widget posts `{type: 'reviews-widget-height', height}` to the parent on render, resize, and tab change.
+- **Validation (`scripts/build-index.mjs`):** checks the required fields (`id`, `platform`, `reviewer_name`, `reviewer_image`, `text`, `date`, `review_url`, `source`), rating 1-5 or null, ISO dates, unique ids, and that each `reviewer_image` exists under `data/images/reviewers/`. A failure stops the workflow without committing.
+- **Workflow:** `.github/workflows/build-index.yml` runs on pushes that touch `data/reviews/**` (other than `index.json`) or `scripts/build-index.mjs`, and on manual dispatch. It commits `data/reviews/index.json` only if it changed. GitHub Pages deploys the branch as-is (`.nojekyll`).
+- **Local preview:** run `python3 -m http.server` in the repo root and open http://localhost:8000/. To try the JS embed against a local copy, point the script `src` at it. The fonts and JSON need CORS when served from a different origin; GitHub Pages sends `Access-Control-Allow-Origin: *`.
+
+---
 
 ## Credits
 
-Platform logos from [Simple Icons](https://simpleicons.org/) (CC0 1.0); the Zola mark is the one heatherwolfeart.com uses. Brand colors (#204a60, #3c4e58, #85a0ad, #bfcdd4, #e2edf2, #999) and the Inter typeface come from heatherwolfeart.com. Review content belongs to its authors and is shown with a link back to the original.
+Platform logos come from [Simple Icons](https://simpleicons.org/) (CC0 1.0); the Zola mark is the one heatherwolfeart.com uses. The brand colors (#204a60, #3c4e58, #85a0ad, #bfcdd4, #e2edf2, #999) and the Inter typeface ([OFL](data/theme/fonts/OFL.txt)) come from heatherwolfeart.com. Review content belongs to its authors and is shown with a link back to the original.
