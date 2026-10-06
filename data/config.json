@@ -33,6 +33,13 @@
       "write_url": "https://www.facebook.com/HeatherWolfeArt/reviews",
       "page_url": "https://www.facebook.com/HeatherWolfeArt/reviews",
       "card_link": "page"
+    },
+    "etsy": {
+      "name": "Etsy",
+      "icon": "data/icons/etsy.svg",
+      "write_url": "https://www.etsy.com/shop/heatherwolfeart#reviews",
+      "page_url": "https://www.etsy.com/shop/heatherwolfeart#reviews",
+      "card_link": "review"
     }
   },
   "display": {
@@ -44,7 +51,13 @@
     "date_locale": "en-US",
     "date_options": { "year": "numeric", "month": "short", "day": "numeric" },
     "font_timeout_ms": 1200,
-    "show_rating_only_reviews": false
+    "show_rating_only_reviews": false,
+    "show_summary": true
+  },
+  "schema": {
+    "enabled": true,
+    "type": "LocalBusiness",
+    "max_reviews": 10
   },
   "rating_labels": [
     { "min": 4.75, "label": "Excellent" },
@@ -71,7 +84,9 @@
     "card_aria": "Read {name}'s review on {platform} (opens in a new tab)",
     "anonymous": "Anonymous",
     "previous": "Previous reviews",
-    "next": "Next reviews"
+    "next": "Next reviews",
+    "ai_summary": "AI summary",
+    "ai_summary_aria": "AI-generated summary of {count} reviews"
   },
   "avatars": {
     "initials_palette": ["#204A60", "#3C4E58", "#85A0AD", "#2F6680", "#5B7685", "#4A6B7C"],

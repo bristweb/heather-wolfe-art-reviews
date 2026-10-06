@@ -1,0 +1,22 @@
+{
+  "id": "etsy-31e8a97d29f3",
+  "platform": "etsy",
+  "platform_review_id": "19158574",
+  "reviewer_name": null,
+  "reviewer_profile_url": null,
+  "reviewer_image": "data/images/reviewers/etsy-2009-09-17-anonymous.svg",
+  "reviewer_image_source_url": null,
+  "rating": 5,
+  "text": "",
+  "date": "2009-09-17T12:00:00Z",
+  "review_url": "https://www.etsy.com/shop/heatherwolfeart#reviews",
+  "owner_reply": null,
+  "collected_at": "2026-10-06T01:34:51Z",
+  "source": "direct",
+  "item_reviewed": {
+    "title": "Vicchio, Italy - by Heather Wolfe",
+    "listing_id": "20046009",
+    "url": "https://www.etsy.com/listing/20046009"
+  },
+  "etsy_shop_id": 5453283
+}

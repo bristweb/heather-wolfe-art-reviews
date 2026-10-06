@@ -2,18 +2,22 @@
 """Weekly monitor: fetch recent reviews from every platform, add only NEW ones, rebuild the manifest.
 
   python3 scripts/pull_reviews.py --print-inputs        # Apify actor inputs with date windows (JSON)
-  python3 scripts/pull_reviews.py --from-raw            # Zola direct + import .pull/{google,yelp,facebook}.json
+  python3 scripts/pull_reviews.py --from-raw            # Zola direct + import .pull/{google,yelp,facebook,etsy}.json
   APIFY_TOKEN=... python3 scripts/pull_reviews.py       # Zola direct + run the actors via the Apify REST API
 
 * Zola     -> direct & free: storefront HTML, reviews read from the embedded __NEXT_DATA__ JSON.
 * Google   -> Apify `compass/Google-Maps-Reviews-Scraper` (logged-out Google Maps shows no reviews).
 * Yelp     -> Apify `web_wanderer/yelp-reviews-scraper`   (yelp.com answers 403 to direct fetches).
 * Facebook -> Apify `apify/facebook-reviews-scraper`      (reviews need a login to list directly).
+* Etsy     -> Apify `astravalabs/etsy-reviews-scraper`    (etsy.com answers DataDome 403s to direct fetches;
+              no date filter, so it asks for the newest 25 reviews, or the full history with --all).
 Apify is used only where the free/direct method fails. Without APIFY_TOKEN only Zola is pulled.
 Each Apify run asks only for reviews newer than (latest stored review on that platform - since-days),
 and is capped with maxTotalChargeUsd. --all ignores the date window (full re-pull).
 Raw results live in .pull/ (git-ignored). Then runs import_reviews.py (new reviews only; full records
 stored) and build-index.mjs.
+Finally checks data/summary.json (the AI summary card): if the number of reviews changed since it was written,
+prints SUMMARY STALE and writes .pull/summary_input.txt (all review texts) so the weekly run can regenerate it.
 Committing/pushing is left to the caller (see README).
 """
 import argparse, datetime, json, os, re, subprocess, sys, urllib.parse, urllib.request
@@ -38,6 +42,9 @@ ACTORS = {
     'facebook': ('apify~facebook-reviews-scraper', lambda since: {
         'startUrls': [{'url': SCRAPE['facebook']}],
         'resultsLimit': 100, **({'onlyReviewsNewerThan': since} if since else {})}),
+    'etsy': ('astravalabs~etsy-reviews-scraper', lambda since: {
+        'shops': [SCRAPE['etsy']], 'reviewsSort': 'Recency',
+        'maxReviews': 25 if since else 0, 'maxTotalResults': 25 if since else 500}),
 }
 ACTORS = {k: v for k, v in ACTORS.items() if SCRAPE.get(k)}  # only platforms this site lists in sources.json
 
@@ -46,7 +53,7 @@ def latest_dates():
     out = {}
     d = os.path.join(ROOT, 'data', 'reviews')
     for f in os.listdir(d):
-        if f.endswith('.json') and f != 'index.json':
+        if f.endswith('.json') and f not in ('index.json', 'schema.json'):
             r = json.load(open(os.path.join(d, f)))
             out[r['platform']] = max(out.get(r['platform'], ''), r['date'])
     return out
@@ -134,6 +141,28 @@ def main():
         sys.exit('nothing pulled')
     subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'import_reviews.py'), *args], check=True)
     subprocess.run(['node', os.path.join(ROOT, 'scripts', 'build-index.mjs')], check=True)
+    check_summary()
+
+
+def check_summary():
+    """The AI summary card (data/summary.json) is written by a person/agent from the stored reviews. Flag it when
+    the review count no longer matches, and dump the review texts for regenerating it."""
+    idx = json.load(open(os.path.join(ROOT, 'data', 'reviews', 'index.json')))
+    revs = idx['reviews']
+    try:
+        summ = json.load(open(os.path.join(ROOT, 'data', 'summary.json')))
+    except FileNotFoundError:
+        summ = {}
+    if summ.get('review_count') == len(revs):
+        print(f'summary: up to date ({len(revs)} reviews)')
+        return
+    path = os.path.join(RAW, 'summary_input.txt')
+    with open(path, 'w') as f:
+        for r in sorted(revs, key=lambda r: r['date'], reverse=True):
+            if (r.get('text') or '').strip():
+                f.write(f"[{r['platform']} {r['date'][:10]} rating={r.get('rating')}] {' '.join(r['text'].split())}\n")
+    print(f"SUMMARY STALE: data/summary.json covers {summ.get('review_count')} reviews, now {len(revs)}. "
+          f"Regenerate its text from {os.path.relpath(path, ROOT)} (see README 'AI summary card').")
 
 
 if __name__ == '__main__':

@@ -3,6 +3,8 @@
  *   data/config.json         platforms (names, icons, write/page URLs), strings, display options
  *   data/theme/theme.css     fonts + CSS custom properties (colors, radius)
  *   data/reviews/index.json  the reviews (built by scripts/build-index.mjs)
+ *   data/reviews/schema.json schema.org JSON-LD (built by scripts/build-index.mjs), injected into <head> once
+ *   data/summary.json        optional AI-generated summary, shown as the first card in "All reviews"
  * The data carries full records; presentation only: reviewer names are shown as first name + last initial and
  * review text is clipped to a short snippet (both computed here at render time).
  *
@@ -17,7 +19,8 @@
  * Each script tag renders its own widget; config, reviews and CSS are fetched once per page.
  * The script finds the repo root from its own URL (override with data-base="https://.../"), loads the CSS
  * (assets/css/reviews-widget.css + data/theme/theme.css) if the page doesn't already have it, then renders.
- * URL params on the host page (?layout=grid&platform=google&limit=12) override data attributes.
+ * Also: data-summary="off" hides the AI summary card; data-schema="off" skips the JSON-LD injection.
+ * URL params on the host page (?layout=grid&platform=google&limit=12&summary=off) override data attributes.
  */
 (function () {
   // Captured at execution time (works for plain, defer and async scripts; null only for ES modules).
@@ -32,19 +35,22 @@
     based_on: 'Based on ', review_one: 'review', review_many: 'reviews', on_platform: ' on {platform}',
     stars_aria: '{rating} out of 5 stars', recommends: 'Recommends', view_on: 'View on {platform}',
     card_aria: "Read {name}'s review on {platform} (opens in a new tab)", anonymous: 'Anonymous',
-    previous: 'Previous reviews', next: 'Next reviews',
+    previous: 'Previous reviews', next: 'Next reviews', ai_summary: 'AI summary',
+    ai_summary_aria: 'AI-generated summary of {count} reviews',
   };
   const DISPLAY = {
     layout: 'carousel', snippet_chars: 160, abbreviate_last_names: true, max_same_platform_run: 2,
     diversity_window_days: 548, date_locale: 'en-US', date_options: { year: 'numeric', month: 'short', day: 'numeric' },
-    font_timeout_ms: 1200, show_rating_only_reviews: false,
+    font_timeout_ms: 1200, show_rating_only_reviews: false, show_summary: true,
   };
   const RATING_LABELS = [{ min: 4.75, label: 'Excellent' }, { min: 4.25, label: 'Great' }, { min: 3.5, label: 'Good' }, { min: 0, label: 'Reviews' }];
   const STAR = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L10 14.9l-5.2 2.7 1-5.8L1.5 7.7l5.9-.9z"/></svg>';
+  const SPARKLE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2.5l1.9 5.6 5.6 1.9-5.6 1.9L10 17.5l-1.9-5.6L2.5 10l5.6-1.9zM18.5 13l.95 2.55L22 16.5l-2.55.95L18.5 20l-.95-2.55L15 16.5l2.55-.95z"/></svg>';
   const THUMB = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 9h3v9H2zM7 18h7.6a2 2 0 0 0 2-1.6l1.2-6A2 2 0 0 0 15.8 8H12V4.5A2.5 2.5 0 0 0 9.5 2L7 8z"/></svg>';
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const fill = (tpl, vars) => String(tpl).replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
   const isBlank = t => !String(t ?? '').replace(/[\s\u200b-\u200d\u2060\ufeff]+/g, '');
+  const SIMPLE_ICONS = 'https://cdn.simpleicons.org/';
   const byNewest = (a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id);
 
   // ---- loading helpers ----
@@ -69,13 +75,30 @@
   }
   const loads = SHARED.loads;
   // One fetch of config + reviews + CSS per base, shared by every widget on the page.
+  // The summary is optional (missing file = no summary card).
   function load(base) {
     return (loads[base] ??= Promise.all([
       fetchJson(base + 'data/config.json'),
       fetchJson(base + 'data/reviews/index.json'),
+      fetchJson(base + 'data/summary.json').catch(() => null),
       ensureCss(base + 'assets/css/reviews-widget.css'),
       ensureCss(base + 'data/theme/theme.css'),
     ]));
+  }
+  // schema.org JSON-LD (data/reviews/schema.json) -> one <script type="application/ld+json"> in <head> per page.
+  // Off when config.schema.enabled is false or any widget script/target has data-schema="off".
+  function injectSchema(base, config, opts) {
+    const S = config.schema || {};
+    if (S.enabled === false || opts.schema === 'off' || SHARED.schema) return;
+    SHARED.schema = true;
+    if (document.getElementById('reviews-widget-schema')) return;
+    fetchJson(base + 'data/reviews/schema.json').then(json => {
+      const tag = document.createElement('script');
+      tag.type = 'application/ld+json';
+      tag.id = 'reviews-widget-schema';
+      tag.textContent = JSON.stringify(json).replace(/</g, '\\u003c');
+      document.head.appendChild(tag);
+    }).catch(() => {});
   }
   // Resolves when the theme's webfont (first family in the computed font-family) is loaded, or after a timeout
   // (then the theme's fallback face shows).
@@ -114,14 +137,15 @@
       el.style.removeProperty('opacity');
       notifyHeight();
     }));
-    let config, data;
+    let config, data, summary;
     try {
-      [config, data] = await load(base);
+      [config, data, summary] = await load(base);
     } catch (e) {
       el.innerHTML = `<div class="rw-loading">${esc(STRINGS.unavailable)}</div>`;
       reveal();
       return;
     }
+    injectSchema(base, config, opts);
     const S = { ...STRINGS, ...(config.strings || {}) };
     const D = { ...DISPLAY, ...(config.display || {}) };
     const PLATFORMS = config.platforms || {};
@@ -130,6 +154,7 @@
       layout: q.get('layout') || opts.layout || D.layout,
       platform: q.get('platform') || opts.platform || 'all',
       limit: +(q.get('limit') || opts.limit || 0),
+      summary: (q.get('summary') || opts.summary) !== 'off' && D.show_summary !== false,
     };
     el.classList.add('rw-layout-' + cfg.layout);
     el.innerHTML = `<div class="rw-loading">${esc(S.loading)}</div>`;
@@ -140,11 +165,18 @@
     const label = avg => (RL.find(x => avg >= x.min) || { label: '' }).label;
     const fmtDate = d => new Date(d).toLocaleDateString(D.date_locale, D.date_options);
     const stars = (n, cls = '') => `<span class="rw-stars ${cls}" role="img" aria-label="${fill(S.stars_aria, { rating: n })}">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= Math.round(n) ? 'on' : ''}">${STAR}</i>`).join('')}</span>`;
+    // Icons: the site's own SVG (config `icon`, else data/icons/<platform>.svg). Only if that file is missing or
+    // fails to load does the widget fall back to the Simple Icons CDN (slug = config `simple_icon` or the platform key).
     const icon = (p, cls) => {
       const P = PLATFORMS[p] || {};
       const c = [cls, P.invert_icon_when_active ? 'rw-icon-invert' : ''].filter(Boolean).join(' ');
-      return `<img${c ? ` class="${c}"` : ''} src="${esc(url(P.icon || `data/icons/${p}.svg`))}" alt="">`;
+      const fallback = SIMPLE_ICONS + encodeURIComponent(P.simple_icon || p);
+      return `<img${c ? ` class="${c}"` : ''} src="${esc(url(P.icon || `data/icons/${p}.svg`))}" data-fallback="${esc(fallback)}" alt="">`;
     };
+    const useFallbackIcons = root => root.querySelectorAll('img[data-fallback]').forEach(img => {
+      const swap = () => { if (img.dataset.fallback) { img.src = img.dataset.fallback; delete img.dataset.fallback; } };
+      img.addEventListener('error', swap, { once: true }); // attached in the same task as innerHTML, before any load result
+    });
 
     // ---- presentation helpers (data stays complete; only the display is abbreviated/clipped) ----
     const isAllUpper = w => w === w.toUpperCase() && w !== w.toLowerCase();
@@ -245,7 +277,13 @@
         ${tabs}
       </header>`;
 
-      const cards = shown.map(r => {
+      // AI summary: first card in "All reviews" only; not a link, not counted, not in the JSON-LD.
+      const ai = cfg.summary && active === 'all' && summary && !isBlank(summary.text)
+        ? `<div class="rw-card rw-ai" role="note" aria-label="${esc(fill(S.ai_summary_aria, { count: summary.review_count ?? all.length }))}">
+          <div class="rw-ai-top"><span class="rw-ai-icon">${SPARKLE}</span><span class="rw-ai-label">${esc(S.ai_summary)}</span></div>
+          <p class="rw-ai-text">${esc(summary.text)}</p>
+        </div>` : '';
+      const cards = ai + shown.map(r => {
         const name = pname(r.platform);
         const rating = typeof r.rating === 'number' ? stars(r.rating) : `<span class="rw-rec">${THUMB}${esc(S.recommends)}</span>`;
         const aria = fill(S.card_aria, { name: r.display_name, platform: name });
@@ -272,6 +310,8 @@
           ${cfg.layout === 'carousel' ? `<button class="rw-nav rw-next" aria-label="${esc(S.next)}">›</button>` : ''}
         </div>`;
 
+      useFallbackIcons(el);
+      fitSummary();
       el.querySelectorAll('.rw-tab').forEach(b => b.addEventListener('click', () => { active = b.dataset.p; render(); }));
       const track = el.querySelector('.rw-track');
       const step = dir => track.scrollBy({ left: dir * track.clientWidth * 0.9, behavior: 'smooth' });
@@ -287,9 +327,15 @@
       upd();
       notifyHeight();
     }
+    // If the summary text is taller than its card (narrow cards), it scrolls; fade the bottom edge to show that.
+    function fitSummary() {
+      const t = el.querySelector('.rw-ai-text');
+      if (t) t.classList.toggle('rw-ai-more', t.scrollHeight > t.clientHeight + 2 && t.scrollTop + t.clientHeight < t.scrollHeight - 2);
+    }
+    el.addEventListener('scroll', e => { if (e.target.classList && e.target.classList.contains('rw-ai-text')) fitSummary(); }, { capture: true, passive: true });
     render();
     reveal();
-    new ResizeObserver(notifyHeight).observe(el);
+    new ResizeObserver(() => { fitSummary(); notifyHeight(); }).observe(el);
   }
 
   // When rendered inside an iframe (embed.html), tell the parent page our height.
@@ -300,7 +346,7 @@
   }
 
   // ---- where to render (no class-name selectors) ----
-  const OPTION_KEYS = ['layout', 'platform', 'limit', 'base', 'overflow'];
+  const OPTION_KEYS = ['layout', 'platform', 'limit', 'base', 'overflow', 'schema', 'summary'];
   const pick = ds => Object.fromEntries(OPTION_KEYS.filter(k => ds && ds[k] != null && ds[k] !== '').map(k => [k, ds[k]]));
   const scriptOpts = pick(ME && ME.dataset);
   const claim = el => {

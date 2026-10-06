@@ -59,6 +59,19 @@
       "icon": "data/icons/facebook.svg"
     },
     {
+      "platform": "etsy",
+      "name": "Etsy",
+      "reviews": true,
+      "linked_url": "https://heatherwolfeart.etsy.com",
+      "review_page_url": "https://www.etsy.com/shop/heatherwolfeart#reviews",
+      "scrape_url": "https://www.etsy.com/shop/heatherwolfeart",
+      "shop_id": 5453283,
+      "reported_rating": 5.0,
+      "reported_count": 3,
+      "icon": "data/icons/etsy.svg",
+      "note": "Shop (product) reviews. etsy.com blocks direct automated fetches (DataDome HTTP 403), so reviews come from the Apify actor astravalabs/etsy-reviews-scraper (~$0.004/review). reported_* = what that run found on 2026-10-05 (3 reviews, all 5 stars, one rating-only from 2009). Only buyers can leave Etsy reviews, so the widget's 'write' link opens the shop's reviews."
+    },
+    {
       "platform": "instagram",
       "name": "Instagram",
       "reviews": false,
@@ -86,14 +99,6 @@
       "reviews": false,
       "linked_url": "https://x.com/HeatherWolfeArt",
       "icon": "data/icons/x.svg"
-    },
-    {
-      "platform": "etsy",
-      "name": "Etsy",
-      "reviews": false,
-      "linked_url": "https://heatherwolfeart.etsy.com",
-      "icon": "data/icons/etsy.svg",
-      "note": "Etsy shop has product reviews but etsy.com returned HTTP 403 to automated fetches on 2026-10-05; not yet collected."
     }
   ]
 }
