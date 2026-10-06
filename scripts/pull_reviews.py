@@ -40,7 +40,7 @@ ACTORS = {
 
 def latest_dates():
     out = {}
-    d = os.path.join(ROOT, 'reviews')
+    d = os.path.join(ROOT, 'data', 'reviews')
     for f in os.listdir(d):
         if f.endswith('.json') and f != 'index.json':
             r = json.load(open(os.path.join(d, f)))

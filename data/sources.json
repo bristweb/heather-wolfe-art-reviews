@@ -15,7 +15,7 @@
       "cid": "8046363929124098631",
       "reported_rating": 5.0,
       "reported_count": 57,
-      "icon": "icons/google.svg"
+      "icon": "assets/icons/google.svg"
     },
     {
       "platform": "yelp",
@@ -25,7 +25,7 @@
       "review_page_url": "https://www.yelp.com/biz/heather-wolfe-art-knoxville",
       "reported_rating": 5.0,
       "reported_count": 5,
-      "icon": "icons/yelp.svg"
+      "icon": "assets/icons/yelp.svg"
     },
     {
       "platform": "zola",
@@ -35,7 +35,7 @@
       "review_page_url": "https://www.zola.com/wedding-vendors/wedding-extras/heather-wolfe-art-live-painting#reviews",
       "reported_rating": 5.0,
       "reported_count": 5,
-      "icon": "icons/zola.svg"
+      "icon": "assets/icons/zola.svg"
     },
     {
       "platform": "facebook",
@@ -46,12 +46,12 @@
       "reported_rating": "100% recommend",
       "reported_count": 16,
       "rating_note": "Facebook uses recommend / don't recommend, not stars; `rating` is null for these reviews. Only 9 of 16 are publicly visible without a login.",
-      "icon": "icons/facebook.svg"
+      "icon": "assets/icons/facebook.svg"
     },
-    { "platform": "instagram", "name": "Instagram", "reviews": false, "linked_url": "https://www.instagram.com/heather_wolfe_art", "icon": "icons/instagram.svg", "note": "Shown on the site via the Elfsight InstaShow feed widget (not a reviews widget)." },
-    { "platform": "tiktok", "name": "TikTok", "reviews": false, "linked_url": "https://www.tiktok.com/@heatherwolfeart", "icon": "icons/tiktok.svg" },
-    { "platform": "youtube", "name": "YouTube", "reviews": false, "linked_url": "https://www.youtube.com/@HeatherWolfeArt", "icon": "icons/youtube.svg" },
-    { "platform": "x", "name": "X", "reviews": false, "linked_url": "https://x.com/HeatherWolfeArt", "icon": "icons/x.svg" },
-    { "platform": "etsy", "name": "Etsy", "reviews": false, "linked_url": "https://heatherwolfeart.etsy.com", "icon": "icons/etsy.svg", "note": "Etsy shop has product reviews but etsy.com returned HTTP 403 to automated fetches on 2026-10-05; not yet collected." }
+    { "platform": "instagram", "name": "Instagram", "reviews": false, "linked_url": "https://www.instagram.com/heather_wolfe_art", "icon": "assets/icons/instagram.svg", "note": "Shown on the site via the Elfsight InstaShow feed widget (not a reviews widget)." },
+    { "platform": "tiktok", "name": "TikTok", "reviews": false, "linked_url": "https://www.tiktok.com/@heatherwolfeart", "icon": "assets/icons/tiktok.svg" },
+    { "platform": "youtube", "name": "YouTube", "reviews": false, "linked_url": "https://www.youtube.com/@HeatherWolfeArt", "icon": "assets/icons/youtube.svg" },
+    { "platform": "x", "name": "X", "reviews": false, "linked_url": "https://x.com/HeatherWolfeArt", "icon": "assets/icons/x.svg" },
+    { "platform": "etsy", "name": "Etsy", "reviews": false, "linked_url": "https://heatherwolfeart.etsy.com", "icon": "assets/icons/etsy.svg", "note": "Etsy shop has product reviews but etsy.com returned HTTP 403 to automated fetches on 2026-10-05; not yet collected." }
   ]
 }

@@ -1,15 +1,16 @@
 #!/usr/bin/env node
-// Builds reviews/index.json from every reviews/*.json file (static manifest for the widget).
+// Builds data/reviews/index.json from every data/reviews/*.json file (static manifest for the widget).
 // The manifest is deliberately minimal: display name (first name + last initial) and the
 // ~160-char snippet only. Per-review files must not contain full text, owner replies,
 // avatar source URLs, or reviewer profile URLs either (the repo is public); this script fails if they do.
 // Usage: node scripts/build-index.mjs   (no dependencies)
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const dir = path.join(root, 'reviews');
+const dir = path.join(root, 'data', 'reviews');
 const required = ['id', 'platform', 'reviewer_display_name', 'reviewer_image', 'snippet', 'date', 'review_url', 'source'];
 // Fields copied into the public manifest (everything else stays in the per-review file).
 const PUBLIC = ['id', 'platform', 'reviewer_display_name', 'reviewer_image', 'rating', 'recommended',
@@ -30,11 +31,13 @@ for (const f of files) {
     if (k in r) errors.push(`${f}: "${k}" must not be stored (snippet only, no identifying data)`);
   if ((r.snippet || '').length > 170) errors.push(`${f}: snippet longer than 170 chars`);
   if (/facebook\.com\/(?!HeatherWolfeArt)/i.test(r.review_url || '')) errors.push(`${f}: Facebook review_url must be the page's reviews tab, not a profile/post URL`);
+  if (r.reviewer_image && !existsSync(path.join(root, r.reviewer_image))) errors.push(`${f}: reviewer_image ${r.reviewer_image} not found`);
+  if (r.reviewer_image && !r.reviewer_image.startsWith('data/images/reviewers/')) errors.push(`${f}: reviewer_image must live under data/images/reviewers/`);
   if ('reviewer_name' in r) errors.push(`${f}: has "reviewer_name"; store only "reviewer_display_name" (first name + last initial)`);
   if (r.reviewer_display_name && !NAME_RE.test(r.reviewer_display_name)) errors.push(`${f}: reviewer_display_name "${r.reviewer_display_name}" must look like "Kylee M."`);
   if (ids.has(r.id)) errors.push(`${f}: duplicate id ${r.id}`);
   ids.add(r.id);
-  const pub = { file: `reviews/${f}` };
+  const pub = { file: `data/reviews/${f}` };
   for (const k of PUBLIC) if (r[k] !== undefined) pub[k] = r[k];
   pub.has_text = Boolean((r.snippet || '').trim());
   reviews.push(pub);
@@ -59,4 +62,4 @@ const summary = {
 };
 const out = { generated_by: 'scripts/build-index.mjs', summary, files: reviews.map(r => r.file), reviews };
 await writeFile(path.join(dir, 'index.json'), JSON.stringify(out, null, 2) + '\n');
-console.log(`reviews/index.json: ${reviews.length} reviews`, JSON.stringify(summary.platforms));
+console.log(`data/reviews/index.json: ${reviews.length} reviews`, JSON.stringify(summary.platforms));

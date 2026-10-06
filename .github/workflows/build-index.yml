@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'reviews/**'
-      - '!reviews/index.json'
+      - 'data/reviews/**'
+      - '!data/reviews/index.json'
       - 'scripts/build-index.mjs'
   workflow_dispatch:
 
@@ -24,16 +24,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Validate review files and rebuild reviews/index.json
+      - name: Validate review files and rebuild data/reviews/index.json
         run: node scripts/build-index.mjs
       - name: Commit manifest if it changed
         run: |
-          if git diff --quiet -- reviews/index.json; then
-            echo "reviews/index.json is up to date"
+          if git diff --quiet -- data/reviews/index.json; then
+            echo "data/reviews/index.json is up to date"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898332+github-actions[bot]@users.noreply.github.com"
-          git add reviews/index.json
-          git commit -m "chore: rebuild reviews/index.json"
+          git add data/reviews/index.json
+          git commit -m "chore: rebuild data/reviews/index.json"
           git push

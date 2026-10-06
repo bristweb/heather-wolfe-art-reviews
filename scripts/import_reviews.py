@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Normalize raw scraper output into one JSON file per review under reviews/.
+"""Normalize raw scraper output into one JSON file per review under data/reviews/.
 
 Usage:
   python3 scripts/import_reviews.py --google google.json --yelp yelp.json \
@@ -16,14 +16,14 @@ to also refresh existing ones (they keep their file names). Reviewer names are
 reduced to first name + last initial before anything is written. Only a ~160-char
 snippet is stored (surnames reduced to initials); full review text, owner replies,
 avatar source URLs and Facebook profile/post URLs are never written. Avatars are downloaded to
-images/reviewers/ (never hotlinked); an initials SVG is generated when the
+data/images/reviewers/ (never hotlinked); an initials SVG is generated when the
 platform has no photo. Run scripts/build-index.mjs afterwards (CI does it too).
 """
 import argparse, datetime, hashlib, html, json, os, re, sys, unicodedata, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-REV_DIR = os.path.join(ROOT, 'reviews')
-IMG_DIR = os.path.join(ROOT, 'images', 'reviewers')
+REV_DIR = os.path.join(ROOT, 'data', 'reviews')
+IMG_DIR = os.path.join(ROOT, 'data', 'images', 'reviewers')
 NOW = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat().replace('+00:00', 'Z')
 SOURCES = {
     'google': 'https://g.page/r/CUdS9bBcbapvEAE/review',
@@ -99,7 +99,7 @@ def fetch_avatar(url, base):
         with urllib.request.urlopen(req, timeout=30) as r:
             data, ctype = r.read(), r.headers.get('Content-Type', '')
         ext = '.png' if 'png' in ctype else '.webp' if 'webp' in ctype else '.jpg'
-        rel = f'images/reviewers/{base}{ext}'
+        rel = f'data/images/reviewers/{base}{ext}'
         with open(os.path.join(ROOT, rel), 'wb') as f:
             f.write(data)
         return rel
@@ -188,7 +188,7 @@ def main():
             stem = fname[:-5]
             img = fetch_avatar(r['photo'], stem)
             if not img:
-                img = f'images/reviewers/{stem}.svg'
+                img = f'data/images/reviewers/{stem}.svg'
                 initials_svg(shown, os.path.join(ROOT, img))
             rec = {
                 'id': rid,
