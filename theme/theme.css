@@ -35,3 +35,12 @@
   --rw-radius:14px;
   --rw-max-width:1200px;
 }
+
+/* Dark tokens (widget .rw-dark / data-theme=dark — follows host page when theme=auto). */
+.rw-host.rw-dark,.rw-host[data-theme="dark"]{
+  --rw-ink:#e8eef2;--rw-body:#c5d0d6;--rw-muted:#8a9aa3;
+  --rw-line:#2a3a44;--rw-line-strong:#3d5160;--rw-card:#0f1a20;--rw-tint:#162830;
+  --rw-accent:#7eb3c9;--rw-accent-2:#a8c9d8;--rw-on-accent:#0a1218;
+  --rw-on-accent-soft:rgba(10,18,24,.22);--rw-star:#f5b301;--rw-star-off:#3d5160;
+  --rw-nav-shadow:0 2px 12px rgba(0,0,0,.45);
+}
