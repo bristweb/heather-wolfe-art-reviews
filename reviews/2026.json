@@ -15,7 +15,6 @@
       "date": "2026-10-05T21:47:17Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "language": "en"
   },
@@ -35,7 +34,6 @@
       "date": "2026-07-03T20:57:27Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 5,
     "review_image_urls": [
@@ -62,7 +60,6 @@
       "date": "2026-05-24T01:13:51Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 19,
     "reviewer_is_local_guide": true,
@@ -88,7 +85,6 @@
     "review_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2tKMk5XeHNiVGxOWjNSV1MyWTFaREpRYWxVeE5XYxAB!2m1!1s0x0:0x6faa6d5cb0f55247!3m1!1s2@1:CAIQACodChtycF9oOkJ2NWxsbTlNZ3RWS2Y1ZDJQalUxNWc%7C%7C?hl=en",
     "owner_reply": null,
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 11
   },
@@ -108,7 +104,6 @@
       "date": "2026-05-01T19:45:36Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 5,
     "language": "en"
@@ -129,7 +124,6 @@
       "date": "2026-04-16T00:04:31Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 9,
     "review_image_urls": [
@@ -156,7 +150,6 @@
       "date": "2026-04-16T00:06:13Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 10,
     "review_image_urls": [

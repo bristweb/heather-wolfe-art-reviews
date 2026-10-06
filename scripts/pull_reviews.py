@@ -144,9 +144,9 @@ def main():
         sys.exit('nothing pulled')
     importer = os.path.join(HERE, 'import_reviews.py')
     if args:
-        subprocess.run([sys.executable, importer, '--data', ROOT, *args, '--source', 'direct'], check=True)
+        subprocess.run([sys.executable, importer, '--data', ROOT, *args], check=True)
     if apify_args:
-        subprocess.run([sys.executable, importer, '--data', ROOT, *apify_args, '--source', 'apify'], check=True)
+        subprocess.run([sys.executable, importer, '--data', ROOT, *apify_args], check=True)
     check_summary()
 
 

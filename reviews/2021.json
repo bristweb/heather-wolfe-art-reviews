@@ -15,7 +15,6 @@
       "date": "2021-11-11T03:48:17Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 2,
     "language": "en"
@@ -36,7 +35,6 @@
       "date": "2021-11-11T03:50:04Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 14,
     "reviewer_is_local_guide": true,
@@ -61,7 +59,6 @@
       "date": "2021-10-22T02:22:55Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "featured_on_website": true,
     "reviewer_review_count": 6,
@@ -85,7 +82,6 @@
     "review_url": "https://www.yelp.com/biz/heather-wolfe-art-knoxville?hrid=te5YZdlb8I-yCM_Abi9F9A",
     "owner_reply": null,
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 1,
     "language": "en"
@@ -106,7 +102,6 @@
       "date": "2024-09-01T12:35:38Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 10,
     "language": "en"
@@ -127,7 +122,6 @@
       "date": "2021-04-12T19:15:37Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 10,
     "reviewer_is_local_guide": true,
@@ -149,7 +143,6 @@
       "date": "2021-02-23T06:49:55Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 6,
     "language": "en"
@@ -167,7 +160,6 @@
     "review_url": "https://www.facebook.com/spkerek/posts/pfbid0TwLM2FbedLjGfGAG3s4HXBKv2m2PrWGr8vqhwjktjTMDb1BtfGDePKuxkAFB2RUYl",
     "owner_reply": null,
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "recommended": true
   }

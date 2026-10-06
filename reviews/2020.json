@@ -15,7 +15,6 @@
       "date": "2024-09-01T12:38:53Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 6,
     "language": "en"
@@ -36,7 +35,6 @@
       "date": "2021-02-23T06:53:19Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 8,
     "language": "en"
@@ -57,7 +55,6 @@
       "date": "2020-10-18T23:37:09Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 1,
     "language": "en"
@@ -75,7 +72,6 @@
     "review_url": "https://www.facebook.com/jasonmlovely/posts/pfbid0n6Svqp9Ujb8CDRpJ5HQ5UgKUoeSo6JiQCfpLxEJFwMtnrntyoryaUPYNNtMsyWu2l",
     "owner_reply": null,
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "recommended": true
   },
@@ -92,7 +88,6 @@
     "review_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUQ4bFptOEFREAE!2m1!1s0x0:0x6faa6d5cb0f55247!3m1!1s2@1:CIHM0ogKEICAgID8lZm8AQ%7C%7C?hl=en",
     "owner_reply": null,
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 8,
     "review_image_urls": [
@@ -113,7 +108,6 @@
     "review_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUM4bS1LNWJBEAE!2m1!1s0x0:0x6faa6d5cb0f55247!3m1!1s2@1:CIHM0ogKEICAgIC8m-K5bA%7C%7C?hl=en",
     "owner_reply": null,
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "featured_on_website": true,
     "reviewer_review_count": 1,
@@ -139,7 +133,6 @@
       "date": "2020-07-15T14:45:17Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 2,
     "review_image_urls": [
@@ -162,7 +155,6 @@
     "review_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSURjdXEzR3FBRRAB!2m1!1s0x0:0x6faa6d5cb0f55247!3m1!1s2@1:CIHM0ogKEICAgIDcuq3GqAE%7C%7C?hl=en",
     "owner_reply": null,
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 2,
     "review_image_urls": [
@@ -190,7 +182,6 @@
       "date": "2020-03-04T13:30:02Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 26,
     "reviewer_is_local_guide": true,

@@ -15,7 +15,6 @@
       "date": "2024-05-25T02:54:46Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 6,
     "review_image_urls": [
@@ -40,7 +39,6 @@
       "date": "2022-06-11T06:22:59Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 85,
     "reviewer_is_local_guide": true,
@@ -62,7 +60,6 @@
       "date": "2022-03-24T00:07:07Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 3,
     "review_image_urls": [
@@ -87,7 +84,6 @@
       "date": "2022-03-21T01:03:43Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 5,
     "review_image_urls": [

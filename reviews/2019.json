@@ -15,7 +15,6 @@
       "date": "2019-11-17T03:17:40Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 6,
     "review_image_urls": [
@@ -39,7 +38,6 @@
       "date": "2019-11-14T18:34:16Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 7,
     "review_image_urls": [
@@ -64,7 +62,6 @@
       "date": "2019-07-12T20:56:53Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 2,
     "language": "en"
@@ -85,7 +82,6 @@
       "date": "2019-07-12T21:12:36Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 8,
     "language": "en"
@@ -106,7 +102,6 @@
       "date": "2019-07-12T20:57:46Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 14,
     "reviewer_is_local_guide": true,
@@ -128,7 +123,6 @@
       "date": "2019-07-12T20:59:45Z"
     },
     "collected_at": "2026-10-05T22:00:27Z",
-    "source": "direct",
     "updated_at": "2026-10-06T00:09:42Z",
     "reviewer_review_count": 7,
     "language": "en"

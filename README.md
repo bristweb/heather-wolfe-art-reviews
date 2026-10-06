@@ -1,6 +1,6 @@
 # Heather Wolfe Art — reviews data
 
-Every public review of **[Heather Wolfe Art](https://heatherwolfeart.com/)** (live wedding & event painting, Knoxville TN), plus the settings and theme for its reviews widget. The widget code and its documentation live in **[bristweb/reviews-widget](https://github.com/bristweb/reviews-widget)**; this repo holds the data plus this site's own [sync tooling](#sync-tooling). GitHub Pages serves these files at `https://bristweb.github.io/heather-wolfe-art-reviews/`.
+Every public review of **[Heather Wolfe Art](https://heatherwolfeart.com/)** (live wedding & event painting, Knoxville TN), plus the settings and theme for its reviews widget. The widget code and its documentation live in **[bristweb/reviews-widget](https://github.com/bristweb/reviews-widget)** (including a short [feature comparison](https://github.com/bristweb/reviews-widget#readme) with hosted review-widget SaaS and reputation platforms); this repo holds the data plus this site's own [sync tooling](#sync-tooling). GitHub Pages serves these files at `https://bristweb.github.io/heather-wolfe-art-reviews/`.
 
 - **Live widget:** https://bristweb.github.io/reviews-widget/?source=https://bristweb.github.io/heather-wolfe-art-reviews/
 - **Settings:** [`config.json`](config.json) · **Reviews:** [`reviews/`](reviews/) (one file per year)
@@ -61,7 +61,7 @@ scripts/              this site's sync tooling (never loaded by the widget)
 .github/workflows/    validate.yml: runs the shared validator on every push
 ```
 
-The record format is documented in [reviews-widget: Data repo format](https://github.com/bristweb/reviews-widget#data-repo-format). Records store everything collected (full names, full text, owner replies, profile and avatar URLs); the widget abbreviates names and clips text when it renders.
+The record format is documented in [reviews-widget: Data repo format](https://github.com/bristweb/reviews-widget#data-repo-format). How reviews are obtained (Zola directly; Google, Yelp and Facebook through Apify) lives only in `config.json` / `scripts/`, never on the review objects. Records store everything collected (full names, full text, owner replies, profile and avatar URLs); the widget abbreviates names and clips text when it renders.
 
 ## Reviews and platforms
 
@@ -79,8 +79,7 @@ The record format is documented in [reviews-widget: Data repo format](https://gi
 - **Facebook card links:** cards link to the page's reviews tab (`card_link: "page"`); the post URLs are stored in `review_url`, and switching is a one-word change (`"review"`).
 - **Featured reviews:** the home page's "Testimonials" (Brendan C, Haley R, Ciera S) are excerpts of Google reviews; those records have `featured_on_website: true` (kept when records are refreshed).
 - **Rating-only reviews:** 5 reviews have no text (3 Google rating-only, 2 empty Facebook recommendations). They count in the header (76 reviews) but get no card (71 review cards).
-- **About Elfsight:** the only Elfsight widget on heatherwolfeart.com is an **Instagram feed** (InstaShow, widget id `1677b7d0-6774-4670-903d-ffb3b4c9ed6c`), not a reviews widget, so no review data comes from Elfsight.
-- **`source`:** reviews imported before October 2026 say `direct`, including ones that came through Apify.
+- **Instagram:** heatherwolfeart.com shows an Instagram feed via a third-party embed (widget id `1677b7d0-6774-4670-903d-ffb3b4c9ed6c`); it is not a reviews widget and no review data comes from it.
 
 ## Sync tooling
 
@@ -104,7 +103,7 @@ node ../reviews-widget/scripts/validate.mjs .    # optional local check (the pus
 git add reviews images/reviewers config.json && git commit -m "reviews: sync $(date +%F)" && git push
 ```
 
-Other ways to run it: `APIFY_TOKEN=… python3 scripts/pull_reviews.py` calls the Apify REST API itself; `--all` drops the date window (still adds only new reviews); `python3 scripts/import_reviews.py --update --<platform> <file>` refreshes existing records (keeping `collected_at`, `source`, avatars and `featured_on_website`). `.pull/` holds raw scraper output and is git-ignored.
+Other ways to run it: `APIFY_TOKEN=… python3 scripts/pull_reviews.py` calls the Apify REST API itself; `--all` drops the date window (still adds only new reviews); `python3 scripts/import_reviews.py --update --<platform> <file>` refreshes existing records (keeping `collected_at`, avatars and `featured_on_website`). `.pull/` holds raw scraper output and is git-ignored.
 
 New reviews are added to `reviews/<year>.json` (a new year gets a new file and is added to `reviews.years`), with avatars downloaded to `images/reviewers/<platform>-<platform_review_id>.<ext>` or an initials SVG in the `avatars` colors. **AI summary:** after an import the script prints `SUMMARY STALE` when any review is dated or was collected after `summary.generated_at`, and writes every review text to `.pull/summary_input.txt`. Rewrite `summary.text` from it (2-4 sentences, about 300 characters, only themes that appear in the reviews, no invented facts, no attributed quotes, no star claims) and set `summary.generated_at` to the current UTC time.
 
@@ -125,7 +124,7 @@ New reviews are added to `reviews/<year>.json` (a new year gets a new file and i
 
 ## Structured data
 
-`schema.type` is `LocalBusiness` (a service business). The widget's JSON-LD has every review (76); the `aggregateRating` counts only the 68 with a 1-5 rating (5.0), leaving out the 8 unrated Facebook recommendations rather than counting them as 5 stars. Google shows no stars for self-serving `LocalBusiness` reviews, so don't expect stars in search; the markup still describes the business accurately. Elfsight's review widgets use `Product` instead; set `schema.type` to copy that.
+`schema.type` is `LocalBusiness` (a service business). The widget's JSON-LD has every review (76); the `aggregateRating` counts only the 68 with a 1-5 rating (5.0), leaving out the 8 unrated Facebook recommendations rather than counting them as 5 stars. Google shows no stars for self-serving `LocalBusiness` reviews, so don't expect stars in search; the markup still describes the business accurately. Some hosted review widgets use `Product` instead; set `schema.type` to copy that.
 
 ## Credits
 
