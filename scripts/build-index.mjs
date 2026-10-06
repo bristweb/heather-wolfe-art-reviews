@@ -70,7 +70,7 @@ function displayName(name) {
   if (!D.abbreviate_last_names) return (name || '').trim() || 'Anonymous';
   const words = (name || '').replace(/\(.*?\)/g, ' ').trim().split(/\s+/).filter(Boolean);
   if (!words.length) return 'Anonymous';
-  const fix = w => (isUpper(w) || isLower(w) ? cap(w) : w);
+  const fix = w => (isUpper(w) && w.length <= 2 ? w : isUpper(w) || isLower(w) ? cap(w) : w); // 'AA' (initials) stays
   if (words.length === 1) return fix(words[0]);
   let first = words.slice(0, -1);
   const last = words[words.length - 1];

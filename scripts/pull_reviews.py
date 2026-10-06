@@ -2,14 +2,19 @@
 """Weekly monitor: fetch recent reviews from every platform, add only NEW ones, rebuild the manifest.
 
   python3 scripts/pull_reviews.py --print-inputs        # Apify actor inputs with date windows (JSON)
-  python3 scripts/pull_reviews.py --from-raw            # Zola direct + import .pull/{google,yelp,facebook}.json
+  python3 scripts/pull_reviews.py --from-raw            # direct platforms + import .pull/<platform>.json for the Apify ones
   APIFY_TOKEN=... python3 scripts/pull_reviews.py       # Zola direct + run the actors via the Apify REST API
 
+Only platforms with `reviews: true` in data/sources.json are pulled:
 * Zola     -> direct & free: storefront HTML, reviews read from the embedded __NEXT_DATA__ JSON.
 * Google   -> Apify `compass/Google-Maps-Reviews-Scraper` (logged-out Google Maps shows no reviews).
 * Yelp     -> Apify `web_wanderer/yelp-reviews-scraper`   (yelp.com answers 403 to direct fetches).
 * Facebook -> Apify `apify/facebook-reviews-scraper`      (reviews need a login to list directly).
-Apify is used only where the free/direct method fails. Without APIFY_TOKEN only Zola is pulled.
+* Amazon   -> Apify `junglee/amazon-reviews-scraper`      (review pages need a login; the product page renders
+              reviews client-side). --all runs once per star rating (free plan: 10 reviews per run).
+* Etsy     -> Apify `astravalabs/etsy-reviews-scraper`    (etsy.com is behind DataDome); shop-wide, filtered to
+              `listing_ids` by the importer.
+Apify is used only where the free/direct method fails. Without APIFY_TOKEN only direct platforms are pulled.
 Each Apify run asks only for reviews newer than (latest stored review on that platform - since-days),
 and is capped with maxTotalChargeUsd. --all ignores the date window (full re-pull).
 Raw results live in .pull/ (git-ignored). Then runs import_reviews.py (new reviews only; full records
@@ -23,11 +28,17 @@ import argparse, datetime, json, os, re, subprocess, sys, urllib.parse, urllib.r
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RAW = os.path.join(ROOT, '.pull')
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36'
-# What to scrape comes from data/sources.json (`scrape_url` per platform); actor ids/options are generic.
+# What to scrape comes from data/sources.json (`scrape_url`, or a `scrape_urls` list, per platform); actor ids/options are generic.
 with open(os.path.join(ROOT, 'data', 'sources.json')) as _f:
-    SCRAPE = {p['platform']: p.get('scrape_url') for p in json.load(_f)['platforms'] if p.get('reviews')}
+    _REV = [p for p in json.load(_f)['platforms'] if p.get('reviews')]
+SCRAPE = {p['platform']: p.get('scrape_url') or (p.get('scrape_urls') or [None])[0] for p in _REV}
+SCRAPE_ALL = {p['platform']: p.get('scrape_urls') or ([p['scrape_url']] if p.get('scrape_url') else []) for p in _REV}
 ZOLA_URL = SCRAPE.get('zola')
+# junglee/amazon-reviews-scraper returns at most 10 reviews per run on Apify's free plan (and 100 per star filter on
+# any plan), so a full pull (--all) runs once per star rating; weekly pulls use one date-windowed run.
+AMAZON_STARS = ['fiveStar', 'fourStar', 'threeStar', 'twoStar', 'oneStar']
 
+# platform -> (actor, build(since) -> one input dict or a list of input dicts (one Apify run each; items are concatenated))
 ACTORS = {
     'google': ('compass~Google-Maps-Reviews-Scraper', lambda since: {
         'startUrls': [{'url': SCRAPE['google']}],
@@ -40,6 +51,15 @@ ACTORS = {
     'facebook': ('apify~facebook-reviews-scraper', lambda since: {
         'startUrls': [{'url': SCRAPE['facebook']}],
         'resultsLimit': 100, **({'onlyReviewsNewerThan': since} if since else {})}),
+    'amazon': ('junglee~amazon-reviews-scraper', lambda since: [{
+        'productUrls': [{'url': u} for u in SCRAPE_ALL['amazon']],
+        'maxReviews': 100, 'includeGdprSensitive': True, 'sort': 'recent',
+        'filterByRatings': [stars], **({'reviewsCutoffDate': since} if since else {})}
+        for stars in (['allStars'] if since else AMAZON_STARS)]),
+    # The Etsy actor takes the shop (it has no date filter); the importer keeps only data/sources.json `listing_ids`.
+    'etsy': ('astravalabs~etsy-reviews-scraper', lambda since: {
+        'shops': SCRAPE_ALL['etsy'], 'reviewsSort': 'Recency', 'maxReviews': 50 if since else 0,
+        'maxTotalResults': 1000}),
 }
 ACTORS = {k: v for k, v in ACTORS.items() if SCRAPE.get(k)}  # only platforms this site lists in sources.json
 
@@ -72,13 +92,15 @@ def pull_zola(path):
     return len(found)
 
 
-def pull_apify(actor, inp, token, max_usd, path):
-    qs = urllib.parse.urlencode({'token': token, 'format': 'json', 'clean': '1',
-                                 'maxTotalChargeUsd': max_usd, 'timeout': 600})
-    url = f'https://api.apify.com/v2/acts/{actor}/run-sync-get-dataset-items?{qs}'
-    req = urllib.request.Request(url, data=json.dumps(inp).encode(), method='POST',
-                                 headers={'Content-Type': 'application/json'})
-    items = json.loads(urllib.request.urlopen(req, timeout=660).read())
+def pull_apify(actor, inputs, token, max_usd, path):
+    items = []
+    for inp in inputs if isinstance(inputs, list) else [inputs]:
+        qs = urllib.parse.urlencode({'token': token, 'format': 'json', 'clean': '1',
+                                     'maxTotalChargeUsd': max_usd, 'timeout': 600})
+        url = f'https://api.apify.com/v2/acts/{actor}/run-sync-get-dataset-items?{qs}'
+        req = urllib.request.Request(url, data=json.dumps(inp).encode(), method='POST',
+                                     headers={'Content-Type': 'application/json'})
+        items += json.loads(urllib.request.urlopen(req, timeout=660).read())
     json.dump(items, open(path, 'w'))
     return len(items)
 
@@ -86,7 +108,7 @@ def pull_apify(actor, inp, token, max_usd, path):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--since-days', type=int, default=30, help='overlap window before the newest stored review')
-    ap.add_argument('--max-usd', type=float, default=0.25, help='Apify cost cap per actor run')
+    ap.add_argument('--max-usd', type=float, default=0.5, help='Apify cost cap per actor run (Apify\'s minimum is $0.50)')
     ap.add_argument('--all', action='store_true', help='full re-pull (no date window)')
     ap.add_argument('--print-inputs', action='store_true', help='print {platform: {actor, input}} and exit')
     ap.add_argument('--from-raw', action='store_true',
@@ -107,7 +129,7 @@ def main():
                               'maxTotalChargeUsd': a.max_usd, 'save_items_to': f'.pull/{p}.json'}
                           for p, (act, b) in ACTORS.items()}, indent=2))
         return
-    args = []
+    args, apify_args = [], []  # direct pulls / Apify pulls (imported with source 'direct' / 'apify')
     if ZOLA_URL:
         try:
             print('zola (direct):', pull_zola(os.path.join(RAW, 'zola.json')), 'reviews on page')
@@ -119,7 +141,7 @@ def main():
         if a.from_raw:
             if os.path.exists(path):
                 print(f'{plat}: importing {path}')
-                args += [f'--{plat}', path]
+                apify_args += [f'--{plat}', path]
             else:
                 print(f'{plat}: no {path}, skipped')
             continue
@@ -129,12 +151,16 @@ def main():
         since = since_for(plat)
         try:
             print(f'{plat} (apify {actor}, since {since or "all"}):', pull_apify(actor, build(since), token, a.max_usd, path), 'items')
-            args += [f'--{plat}', path]
+            apify_args += [f'--{plat}', path]
         except Exception as e:
             print(f'{plat} failed:', e, file=sys.stderr)
-    if not args:
+    if not args and not apify_args:
         sys.exit('nothing pulled')
-    subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'import_reviews.py'), *args], check=True)
+    importer = os.path.join(ROOT, 'scripts', 'import_reviews.py')
+    if args:
+        subprocess.run([sys.executable, importer, *args, '--source', 'direct'], check=True)
+    if apify_args:
+        subprocess.run([sys.executable, importer, *apify_args, '--source', 'apify'], check=True)
     subprocess.run(['node', os.path.join(ROOT, 'scripts', 'build-index.mjs')], check=True)
     check_summary()
 

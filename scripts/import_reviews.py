@@ -3,7 +3,7 @@
 
 Usage:
   python3 scripts/import_reviews.py --google google.json --yelp yelp.json \
-      --facebook fb.json --zola zola_reviews.json --etsy etsy.json
+      --facebook fb.json --zola zola_reviews.json --etsy etsy.json --amazon amazon.json
 
 Raw inputs (see README "Weekly pull"):
   google   : Apify compass/Google-Maps-Reviews-Scraper dataset items (JSON array)
@@ -11,6 +11,7 @@ Raw inputs (see README "Weekly pull"):
   facebook : Apify apify/facebook-reviews-scraper dataset items
   zola     : review objects extracted from the Zola storefront __NEXT_DATA__
   etsy     : Apify astravalabs/etsy-reviews-scraper dataset items (etsy.com itself is behind DataDome)
+  amazon   : Apify junglee/amazon-reviews-scraper dataset items (Amazon review pages need a login)
 
 By default only NEW reviews are written (matched by stable `id`); pass --update
 to also refresh existing ones (they keep their file names and avatars). EVERYTHING is
@@ -51,7 +52,7 @@ def display_name(name):
     words = [w for w in re.split(r'\s+', n) if w]
     if not words:
         return 'Anonymous'
-    fix = lambda w: w.capitalize() if w.isupper() or w.islower() else w
+    fix = lambda w: w if w.isupper() and len(w) <= 2 else w.capitalize() if w.isupper() or w.islower() else w  # 'AA' stays
     if len(words) == 1:
         return fix(words[0])
     first, last = words[:-1], words[-1]
@@ -170,25 +171,72 @@ def from_zola(x):
                        'review_image_ids': [ph.get('imageUuid') for ph in x.get('reviewPhotos') or []] or None})
 
 
+ETSY_LISTINGS = {str(i) for i in _SRC.get('etsy', {}).get('listing_ids') or []}  # optional: only these listings
+AMAZON_ASINS = {str(i) for i in _SRC.get('amazon', {}).get('asins') or []}       # optional: only these ASINs
+
+
 def from_etsy(x):
-    lid = x.get('listing_id')
+    """Apify astravalabs/etsy-reviews-scraper item. The actor returns every review in the shop; when
+    data/sources.json lists etsy `listing_ids`, reviews of other listings are skipped. Etsy only lets buyers review,
+    so each review is tied to an order (`review_id` is Etsy's transaction id). The actor has no avatar field; an
+    optional `buyer_avatar_url` / `buyer_profile_url` (read from the listing page's review markup) is used when present."""
+    lid = str(x.get('listing_id') or '') or None
+    if ETSY_LISTINGS and lid not in ETSY_LISTINGS:
+        return None
     name = x.get('buyer')
     photos = [p if isinstance(p, str) else (p or {}).get('url') for p in x.get('photos') or []]
-    return dict(platform='etsy', pid=str(x['review_id']), name=None if name == 'Anonymous' else name, photo=None,
-                profile=x.get('buyer_profile_url'), rating=x.get('rating'), text=x.get('text') or '',
-                date=etsy_date(x['review_date']), url=REVIEW_PAGE['etsy'],
+    return dict(platform='etsy', pid=str(x['review_id']), name=None if name == 'Anonymous' else name,
+                photo=x.get('buyer_avatar_url'), profile=x.get('buyer_profile_url'), rating=x.get('rating'),
+                text=x.get('text') or '', date=etsy_date(x['review_date']),
+                url=f'https://www.etsy.com/listing/{lid}#reviews' if lid else REVIEW_PAGE['etsy'],
                 reply={'text': x['seller_response'], 'date': etsy_date(x.get('seller_response_date'))} if x.get('seller_response') else None,
                 extra={'item_reviewed': {'title': x.get('listing_title'), 'listing_id': lid,
                                          'url': f'https://www.etsy.com/listing/{lid}' if lid else None} if (lid or x.get('listing_title')) else None,
+                       'verified_purchase': True,
+                       'verified_purchase_source': f'Etsy reviews can only be left by buyers; tied to Etsy transaction {x["review_id"]}',
                        'review_image_urls': [p for p in photos if p] or None,
+                       'etsy_shop': x.get('shop'),
                        'etsy_shop_id': x.get('shop_id')})
+
+
+def from_amazon(x):
+    """Apify junglee/amazon-reviews-scraper item (run with includeGdprSensitive: true). Error / category-only rows
+    (no reviewId) are skipped, as are ASINs not listed in data/sources.json `asins` (when that list is set).
+    Amazon shows no seller replies on reviews, so owner_reply is always null. The actor returns `avatar: null` when
+    Amazon shows its default silhouette; an initials avatar is generated then."""
+    if not x.get('reviewId'):
+        return None
+    asin = x.get('productAsin') or x.get('variantAsin')
+    if AMAZON_ASINS and asin not in AMAZON_ASINS and x.get('productOriginalAsin') not in AMAZON_ASINS:
+        return None
+    try:
+        helpful = int(str(x.get('reviewReaction') or '').split()[0].replace(',', ''))
+    except (ValueError, IndexError):
+        helpful = 1 if str(x.get('reviewReaction') or '').lower().startswith('one') else None
+    prof = (x.get('userProfileLink') or '').split('/ref=')[0] or None
+    return dict(platform='amazon', pid=x['reviewId'], name=x.get('username'), photo=x.get('avatar'),
+                profile=prof, rating=x.get('ratingScore'), text=x.get('reviewDescription') or '',
+                date=f"{x['date'][:10]}T12:00:00Z" if re.fullmatch(r'\d{4}-\d{2}-\d{2}', str(x.get('date') or '')) else iso(x['date']),
+                url=x.get('reviewUrl') or REVIEW_PAGE['amazon'], reply=None,
+                extra={'title': x.get('reviewTitle'),
+                       'item_reviewed': {'title': _SRC.get('amazon', {}).get('product_title'), 'asin': asin,
+                                         'variant_asin': x.get('variantAsin'),
+                                         'variant': x.get('variant') or None,
+                                         'url': f'https://www.amazon.com/dp/{asin}' if asin else None},
+                       'verified_purchase': bool(x.get('isVerified')),
+                       'amazon_vine': bool(x.get('isAmazonVine')) or None,
+                       'helpful_votes': helpful,
+                       'reviewed_in': x.get('reviewedIn'),
+                       'country': x.get('country'),
+                       'amazon_user_id': x.get('userId'),
+                       'review_image_urls': x.get('reviewImages') or None})
 
 
 def main():
     ap = argparse.ArgumentParser()
-    for p in ('google', 'yelp', 'facebook', 'zola', 'etsy'):
+    for p in ('google', 'yelp', 'facebook', 'zola', 'etsy', 'amazon'):
         ap.add_argument('--' + p)
-    ap.add_argument('--source', default='direct', help="value for the `source` field (elfsight|direct)")
+    ap.add_argument('--source', default='direct', help="value for the `source` field (direct|apify|elfsight)")
     ap.add_argument('--update', action='store_true',
                     help='also refresh reviews that already exist (default: add new reviews only)')
     a = ap.parse_args()
@@ -199,7 +247,8 @@ def main():
         if fn.endswith('.json') and fn not in ('index.json', 'schema.json'):
             with open(os.path.join(REV_DIR, fn)) as f:
                 existing[json.load(f)['id']] = fn
-    conv = {'google': from_google, 'yelp': from_yelp, 'facebook': from_facebook, 'zola': from_zola, 'etsy': from_etsy}
+    conv = {'google': from_google, 'yelp': from_yelp, 'facebook': from_facebook, 'zola': from_zola, 'etsy': from_etsy,
+            'amazon': from_amazon}
     n = 0
     for plat, fn in conv.items():
         path = getattr(a, plat)
@@ -209,6 +258,8 @@ def main():
             items = json.load(f)
         for x in items:
             r = fn(x)
+            if r is None:  # not a review of this business (other listing/ASIN, error row)
+                continue
             rid = f"{plat}-{hashlib.sha1(r['pid'].encode()).hexdigest()[:12]}"
             day = r['date'][:10]
             base = f"{plat}-{day}-{slugify(display_name(r['name']))}"
@@ -248,7 +299,7 @@ def main():
             }
             if old:
                 rec['updated_at'] = NOW
-            rec.update({k: v for k, v in r['extra'].items() if v not in (None, False, '', [])})
+            rec.update({k: v for k, v in r['extra'].items() if v not in (None, '', []) and not (v is False and k != 'verified_purchase')})
             with open(os.path.join(REV_DIR, fname), 'w') as f:
                 json.dump(rec, f, indent=2, ensure_ascii=False)
                 f.write('\n')

@@ -20,7 +20,18 @@
  * The script finds the repo root from its own URL (override with data-base="https://.../"), loads the CSS
  * (assets/css/reviews-widget.css + data/theme/theme.css) if the page doesn't already have it, then renders.
  * Also: data-summary="off" hides the AI summary card; data-schema="off" skips the JSON-LD injection.
- * URL params on the host page (?layout=grid&platform=google&limit=12&summary=off) override data attributes.
+ * Fitting options (each independent; defaults in config.json `display`, overridden by the data- attribute):
+ *   data-fixed-height="true"   fill the container's (or the viewport's) height and fit everything inside it:
+ *                              header compacts, cards take the remaining height, long text scrolls in its card,
+ *                              no height messages to a parent frame
+ *   data-overflow="clip|visible|hidden"  clip (default) trims the arrows' sideways overhang; hidden clips both axes
+ *   data-arrows="outside|inside|off"     carousel arrows overhang the edges (default), sit inside them, or are hidden
+ *   data-hover-lift="true|false"         cards rise 2px on hover/focus (default true)
+ *   data-focus-ring="outside|inside"     keyboard focus outline drawn outside (default) or inside tabs/button/arrows
+ *   data-cards="N"                       at most N cards side by side (carousel: 1-3; grid: 1-4; 0 = automatic)
+ *   data-padding="N"                     padding around the widget in px (default 6)
+ * URL params on the host page (?layout=grid&platform=google&limit=12&summary=off&fixed-height=true&arrows=inside…)
+ * override data attributes.
  */
 (function () {
   // Captured at execution time (works for plain, defer and async scripts; null only for ES modules).
@@ -42,6 +53,8 @@
     layout: 'carousel', snippet_chars: 160, abbreviate_last_names: true, max_same_platform_run: 2,
     diversity_window_days: 548, date_locale: 'en-US', date_options: { year: 'numeric', month: 'short', day: 'numeric' },
     font_timeout_ms: 1200, show_rating_only_reviews: false, show_summary: true,
+    // fitting options (script data- attributes / URL params override these)
+    fixed_height: false, overflow: 'clip', arrows: 'outside', hover_lift: true, focus_ring: 'outside', cards: 0, padding: null,
   };
   const RATING_LABELS = [{ min: 4.75, label: 'Excellent' }, { min: 4.25, label: 'Great' }, { min: 3.5, label: 'Good' }, { min: 0, label: 'Reviews' }];
   const STAR = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L10 14.9l-5.2 2.7 1-5.8L1.5 7.7l5.9-.9z"/></svg>';
@@ -52,6 +65,8 @@
   const isBlank = t => !String(t ?? '').replace(/[\s\u200b-\u200d\u2060\ufeff]+/g, '');
   const SIMPLE_ICONS = 'https://cdn.simpleicons.org/';
   const byNewest = (a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id);
+  // 'true' / '' (bare attribute) / '1' / 'on' / 'yes' -> true; 'false' / '0' / 'off' / 'no' -> false
+  const toBool = v => (typeof v === 'boolean' ? v : v != null && !/^(false|0|off|no)$/i.test(String(v).trim()));
 
   // ---- loading helpers ----
   const fetchJson = url => fetch(url, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error(r.status + ' ' + url); return r.json(); });
@@ -132,10 +147,27 @@
     el.style.opacity = '0'; // hidden until CSS, fonts and the first layout are ready (CSS takes over afterwards)
     // Stay invisible until the webfont is ready AND the first render is laid out, then fade in once, so there's
     // no font swap or re-fit flash. Header steps are pure CSS container queries.
+    // data-fixed-height: the host fills its parent's height when the parent has a definite height, otherwise the
+    // viewport below the widget's top (e.g. a fixed-height iframe whose page is just the script tag).
+    let fixedHeight = false;
+    function fitHeight() {
+      const parent = host.parentElement;
+      if (!parent) return;
+      const probe = document.createElement('div');
+      probe.style.cssText = 'display:block;height:100%;width:0;min-height:0;margin:0;padding:0;border:0;flex:none';
+      parent.insertBefore(probe, host);
+      const definite = probe.getBoundingClientRect().height > 0 && parent !== document.body && parent !== document.documentElement;
+      probe.remove();
+      if (definite) { host.style.height = '100%'; return; }
+      const bs = getComputedStyle(document.body), hs = getComputedStyle(document.documentElement);
+      const top = host.getBoundingClientRect().top + scrollY;
+      const below = (parseFloat(bs.marginBottom) || 0) + (parseFloat(bs.paddingBottom) || 0) + (parseFloat(hs.paddingBottom) || 0);
+      host.style.height = Math.max(120, Math.floor(innerHeight - top - below)) + 'px';
+    }
     const reveal = () => requestAnimationFrame(() => requestAnimationFrame(() => {
       el.classList.add('rw-ready');
       el.style.removeProperty('opacity');
-      notifyHeight();
+      if (!fixedHeight) notifyHeight();
     }));
     let config, data, summary;
     try {
@@ -150,13 +182,36 @@
     const D = { ...DISPLAY, ...(config.display || {}) };
     const PLATFORMS = config.platforms || {};
     const RL = (config.rating_labels || RATING_LABELS).slice().sort((a, b) => b.min - a.min);
+    // URL param > data- attribute > config.json display > built-in default
+    const opt = (param, key, dkey) => (q.get(param) !== null ? q.get(param) : opts[key] != null ? opts[key] : D[dkey]);
     const cfg = {
       layout: q.get('layout') || opts.layout || D.layout,
       platform: q.get('platform') || opts.platform || 'all',
       limit: +(q.get('limit') || opts.limit || 0),
       summary: (q.get('summary') || opts.summary) !== 'off' && D.show_summary !== false,
+      fixed: toBool(opt('fixed-height', 'fixedHeight', 'fixed_height')),
+      overflow: String(opt('overflow', 'overflow', 'overflow') || 'clip'),
+      arrows: String(opt('arrows', 'arrows', 'arrows') || 'outside'),
+      lift: toBool(opt('hover-lift', 'hoverLift', 'hover_lift')),
+      focus: String(opt('focus-ring', 'focusRing', 'focus_ring') || 'outside'),
+      cards: Math.max(0, Math.min(4, parseInt(opt('cards', 'cards', 'cards'), 10) || 0)),
+      padding: opt('padding', 'padding', 'padding'),
     };
+    fixedHeight = cfg.fixed;
+    host.classList.toggle('rw-clip', cfg.overflow !== 'visible' && cfg.overflow !== 'hidden');
+    host.classList.toggle('rw-overflow-hidden', cfg.overflow === 'hidden');
     el.classList.add('rw-layout-' + cfg.layout);
+    if (cfg.arrows === 'inside') el.classList.add('rw-arrows-inside');
+    if (!cfg.lift) el.classList.add('rw-nolift');
+    if (cfg.focus === 'inside') el.classList.add('rw-focus-inside');
+    if (cfg.cards) el.classList.add('rw-cards-' + cfg.cards);
+    if (cfg.padding != null && cfg.padding !== '' && isFinite(cfg.padding)) el.style.setProperty('--rw-pad', Math.max(0, +cfg.padding) + 'px');
+    if (cfg.fixed) {
+      host.classList.add('rw-fixed-host');
+      el.classList.add('rw-fixed');
+      fitHeight();
+      addEventListener('resize', fitHeight);
+    }
     el.innerHTML = `<div class="rw-loading">${esc(S.loading)}</div>`;
     await fontsReady(el, D.font_timeout_ms);
 
@@ -182,12 +237,12 @@
     const isAllUpper = w => w === w.toUpperCase() && w !== w.toLowerCase();
     const isAllLower = w => w === w.toLowerCase() && w !== w.toUpperCase();
     const capitalize = w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
-    // 'Jane Doe' -> 'Jane D.'; 'Mary Smith (Smith Studio)' -> 'Mary S.'; 'Ann And Bob C.' -> 'Ann & Bob C.'; 'JANE D.' -> 'Jane D.'
+    // 'Jane Doe' -> 'Jane D.'; 'Mary Smith (Smith Studio)' -> 'Mary S.'; 'Ann And Bob C.' -> 'Ann & Bob C.'; 'JANE D.' -> 'Jane D.'; 'AA' -> 'AA'
     function displayName(name) {
       if (!D.abbreviate_last_names) return (name || '').trim() || S.anonymous;
       const words = (name || '').replace(/\(.*?\)/g, ' ').trim().split(/\s+/).filter(Boolean);
       if (!words.length) return S.anonymous;
-      const fix = w => (isAllUpper(w) || isAllLower(w) ? capitalize(w) : w);
+      const fix = w => (isAllUpper(w) && w.length <= 2 ? w : isAllUpper(w) || isAllLower(w) ? capitalize(w) : w); // 'AA' (initials) stays
       if (words.length === 1) return fix(words[0]);
       let first = words.slice(0, -1);
       const last = words[words.length - 1];
@@ -305,9 +360,9 @@
 
       el.innerHTML = `${header}
         <div class="rw-viewport">
-          ${cfg.layout === 'carousel' ? `<button class="rw-nav rw-prev" aria-label="${esc(S.previous)}">‹</button>` : ''}
+          ${cfg.layout === 'carousel' && cfg.arrows !== 'off' ? `<button class="rw-nav rw-prev" aria-label="${esc(S.previous)}">‹</button>` : ''}
           <div class="rw-track">${cards}</div>
-          ${cfg.layout === 'carousel' ? `<button class="rw-nav rw-next" aria-label="${esc(S.next)}">›</button>` : ''}
+          ${cfg.layout === 'carousel' && cfg.arrows !== 'off' ? `<button class="rw-nav rw-next" aria-label="${esc(S.next)}">›</button>` : ''}
         </div>`;
 
       useFallbackIcons(el);
@@ -325,7 +380,7 @@
       };
       track.addEventListener('scroll', upd, { passive: true });
       upd();
-      notifyHeight();
+      if (!cfg.fixed) notifyHeight();
     }
     // If the summary text is taller than its card (narrow cards), it scrolls; fade the bottom edge to show that.
     function fitSummary() {
@@ -335,7 +390,7 @@
     el.addEventListener('scroll', e => { if (e.target.classList && e.target.classList.contains('rw-ai-text')) fitSummary(); }, { capture: true, passive: true });
     render();
     reveal();
-    new ResizeObserver(() => { fitSummary(); notifyHeight(); }).observe(el);
+    new ResizeObserver(() => { fitSummary(); if (!cfg.fixed) notifyHeight(); }).observe(el);
   }
 
   // When rendered inside an iframe (embed.html), tell the parent page our height.
@@ -346,8 +401,11 @@
   }
 
   // ---- where to render (no class-name selectors) ----
-  const OPTION_KEYS = ['layout', 'platform', 'limit', 'base', 'overflow', 'schema', 'summary'];
-  const pick = ds => Object.fromEntries(OPTION_KEYS.filter(k => ds && ds[k] != null && ds[k] !== '').map(k => [k, ds[k]]));
+  const OPTION_KEYS = ['layout', 'platform', 'limit', 'base', 'overflow', 'schema', 'summary',
+    'fixedHeight', 'arrows', 'hoverLift', 'focusRing', 'cards', 'padding'];
+  const BOOL_KEYS = ['fixedHeight', 'hoverLift']; // a bare attribute (data-fixed-height) means true
+  const pick = ds => Object.fromEntries(OPTION_KEYS.filter(k => ds && ds[k] != null && (ds[k] !== '' || BOOL_KEYS.includes(k)))
+    .map(k => [k, ds[k] === '' ? 'true' : ds[k]]));
   const scriptOpts = pick(ME && ME.dataset);
   const claim = el => {
     if (el.__reviewsWidget) return false;

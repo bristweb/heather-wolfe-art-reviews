@@ -45,7 +45,14 @@
     "date_options": { "year": "numeric", "month": "short", "day": "numeric" },
     "font_timeout_ms": 1200,
     "show_rating_only_reviews": false,
-    "show_summary": true
+    "show_summary": true,
+    "fixed_height": false,
+    "overflow": "clip",
+    "arrows": "outside",
+    "hover_lift": true,
+    "focus_ring": "outside",
+    "cards": 0,
+    "padding": 6
   },
   "schema": {
     "enabled": true,

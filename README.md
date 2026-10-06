@@ -14,6 +14,7 @@ The code is generic. Everything specific to this business (reviews, platforms, l
 1. [Embed on your site](#embed-on-your-site)
    - [JavaScript embed (preferred)](#javascript-embed-preferred)
    - [Iframe embed (alternative)](#iframe-embed-alternative)
+   - [Google Sites and other fixed-height boxes](#google-sites-and-other-fixed-height-boxes)
 2. [Options and customization](#options-and-customization)
 3. [Reuse for another site](#reuse-for-another-site)
 4. [Folder layout](#folder-layout)
@@ -94,9 +95,44 @@ Use this when your site builder only accepts iframes, or when you want the widge
 </script>
 ```
 
-Options go in the query string: `embed.html?layout=grid&platform=google&limit=12`. Without the resize script, set a fixed height. The carousel is about 410px tall at desktop widths.
+Options go in the query string: `embed.html?layout=grid&platform=google&limit=12`. Without the resize script, set a fixed height (the carousel is about 410px tall at desktop widths), or add `fixed-height=true` so the widget fits whatever height you give the iframe (see [the next section](#google-sites-and-other-fixed-height-boxes)).
 
 `index.html` and `embed.html` are the same bare page, with no page chrome and a transparent background.
+
+### Google Sites and other fixed-height boxes
+
+Some site builders put embedded code in a box whose height you set and the code can't change. Google Sites is the common example: *Insert → Embed → Embed code* places your HTML in a sandboxed iframe on `atari-embeds.googleusercontent.com` (with `sandbox="allow-scripts allow-popups allow-forms allow-same-origin allow-popups-to-escape-sandbox allow-downloads allow-modals allow-storage-access-by-user-activation"`, as seen in fastonepro.com's page source). You set its height by dragging the box in the editor. Nothing inside the box can resize it, and anything taller than the box is cut off.
+
+For boxes like that, the widget has a few independent [fitting options](#per-embed-options). This combination suits Google Sites:
+
+```html
+<script src="https://bristweb.github.io/heather-wolfe-art-reviews/assets/js/reviews-widget.js"
+        data-fixed-height="true" data-arrows="inside" data-overflow="hidden"
+        data-hover-lift="false" data-focus-ring="inside"></script>
+```
+
+In Google Sites: *Insert → Embed → Embed code*, paste the snippet, *Next*, *Insert*. Then stretch the box to the full width of the section and drag it to about **420px** tall.
+
+- `data-fixed-height="true"`: the widget fills the box's full height and fits inside it. The header stays on top and the cards take the remaining height. A long review scrolls inside its own card. In short boxes the header compacts further (see [Header behavior](#header-behavior)). The widget never tries to resize the box (it sends no height messages).
+- `data-arrows="inside"`: the carousel arrows sit inside the widget's edges instead of overhanging them by 8px.
+- `data-overflow="hidden"`: nothing paints outside the widget, horizontally or vertically.
+- `data-hover-lift="false"`: cards don't rise 2px on hover, so their top edge can't be cut off.
+- `data-focus-ring="inside"`: keyboard focus outlines are drawn inside the tabs, the button, and the arrows.
+
+| Box height | Result |
+|---|---|
+| above 460px | full header, roomy cards |
+| about 420px (recommended) | one-row header without "Excellent" / "Based on"; the whole snippet shows on desktop widths |
+| 300-400px | smaller score, stars, and text; longer snippets scroll inside their card |
+
+**Tested** in Chrome with a simulated Google Sites iframe (the sandbox above, and again without `allow-same-origin`, which gives the frame an opaque origin), at heights of 300, 400, 460 and 500px and widths of 400, 800 and 1200px. In every case nothing was cut off and the page inside the box never scrolled. The arrows paged through the cards, the font and data loaded, and clicking a card opened the review in a new tab. The same results held with *Embed → By URL* and `https://bristweb.github.io/heather-wolfe-art-reviews/embed.html?fixed-height=true&arrows=inside&overflow=hidden&hover-lift=false&focus-ring=inside`.
+
+- **New tabs:** cards and "Write a review" are `target="_blank" rel="noopener"` links. Inside a sandboxed iframe, opening them needs `allow-popups`. Google Sites also grants `allow-popups-to-escape-sandbox`, so the review page opens as a normal tab.
+- **Fonts and data:** the stylesheet, fonts and JSON come from GitHub Pages, which sends `Access-Control-Allow-Origin: *`. They load even from an opaque-origin sandbox.
+- **No auto-resize:** the box keeps the height you set. The widget adapts to that height and to whatever width the box has, including on phones.
+- **Structured data:** the JSON-LD goes into the embed's own iframe document, not into the Google Sites page.
+
+The same options work in any fixed-height container: a `<div style="height:400px">` around the script tag, or a fixed-height iframe of `embed.html` without the resize script. With `data-fixed-height`, the widget fills its parent element when the parent has a definite height. Otherwise it fills the window from its own top edge down, minus the page's bottom margin.
 
 ---
 
@@ -110,11 +146,18 @@ Options go in the query string: `embed.html?layout=grid&platform=google&limit=12
 | `data-platform` | `platform` | `all`, or a platform key from `data/config.json` (`google`, `yelp`, `zola`, `facebook`) | `all` |
 | `data-limit` | `limit` | maximum number of cards (`0` = no limit) | `0` |
 | `data-base` | n/a | repo root URL, ending in `/` | worked out from the script URL |
-| `data-overflow` | n/a | `visible` lets the carousel arrows overhang the widget edge by 8px (the bare pages use this). By default the overhang is clipped so it can't cause horizontal page scroll | clipped |
 | `data-summary` | `summary` | `off` hides the [AI summary card](#ai-summary-card) | shown (`display.show_summary`) |
 | `data-schema` | n/a | `off` skips injecting the [JSON-LD](#structured-data-json-ld) into the page | injected (`schema.enabled`) |
+| **Fitting options** | | | |
+| `data-fixed-height` | `fixed-height` | `true`: fill the full height of the parent element (or, if the parent has no definite height, of the window below the widget) and fit everything inside it: the header stays on top, the cards take the remaining height, long text scrolls inside its card, and the header compacts in short boxes. No height messages are sent to a parent frame. `false`: the widget is as tall as its content | `display.fixed_height` (`false`) |
+| `data-overflow` | `overflow` | `clip`: the arrows' 8px overhang is clipped sideways so it can't cause horizontal page scroll. `visible`: the arrows overhang the widget edge (the bare pages use this). `hidden`: nothing paints outside the widget in any direction | `display.overflow` (`clip`) |
+| `data-arrows` | `arrows` | `outside` (overhang the edges by 8px), `inside` (within the edges), or `off` (no arrows; swiping and scrolling still work) | `display.arrows` (`outside`) |
+| `data-hover-lift` | `hover-lift` | `true`: cards rise 2px on hover and focus. `false`: they stay put (only the border changes) | `display.hover_lift` (`true`) |
+| `data-focus-ring` | `focus-ring` | `outside`: focus outlines are drawn 2px outside the tabs, button, and arrows. `inside`: drawn inside them, so a box edge can't cut them off | `display.focus_ring` (`outside`) |
+| `data-cards` | `cards` | the most cards shown side by side: carousel `1`-`3` (narrow widths still show fewer, as usual), grid `1`-`4`. `0` = automatic (carousel up to 4; grid as many 270px columns as fit) | `display.cards` (`0`) |
+| `data-padding` | `padding` | space around the widget, in px | `display.padding` (`6`) |
 
-Query parameters on the page that hosts the widget override the `data-` attributes (this applies to every widget on that page).
+Query parameters on the page that hosts the widget override the `data-` attributes (this applies to every widget on that page). For every option that has a `display` key, the order is: query parameter, then `data-` attribute, then `display` in `data/config.json`, then the built-in default. The two on/off options take `true` / `false` (also `1` / `0`, `on` / `off`, `yes` / `no`), and a bare `data-fixed-height` means `true`. Each fitting option works on its own; none depends on another.
 
 The platform tabs still let visitors switch filters. The header's rating and review count always follow the selected tab.
 
@@ -133,6 +176,7 @@ The platform tabs still let visitors switch filters. The header's rating and rev
 | `display.font_timeout_ms` | how long to wait for the webfont before showing the fallback face |
 | `display.show_rating_only_reviews` | `false` (default): reviews with no text are counted in the header but get no card. `true`: they get a card with no text element |
 | `display.show_summary` | `true` (default): show `data/summary.json` as the first card in "All reviews"; `false`: never |
+| `display.fixed_height`, `display.overflow`, `display.arrows`, `display.hover_lift`, `display.focus_ring`, `display.cards`, `display.padding` | site-wide defaults for the [fitting options](#per-embed-options): `false`, `"clip"`, `"outside"`, `true`, `"outside"`, `0`, `6`. A `data-` attribute or query parameter overrides them per embed |
 | `schema.enabled`, `schema.type`, `schema.max_reviews`, `schema.extra` | JSON-LD built into `data/reviews/schema.json` and injected into the page: on/off, the `@type` (`LocalBusiness`; `Product` is what Elfsight uses), how many Review items (`0` = all, the default), and extra properties merged into the entity (e.g. `address`, `telephone`, `image`) |
 | `rating_labels` | words shown next to the score (`min` average → label) |
 | `strings` | every piece of visible or screen-reader text ("Write a review", "Based on", "View on {platform}", aria labels, …), with `{placeholders}` |
@@ -173,7 +217,7 @@ The widget code (`assets/`, `index.html`, `embed.html`, `scripts/`, the workflow
    | `data/config.json` | the business name and site, each platform's name, icon, write-a-review URL, and page URL, strings (any language), display options, and the initials-avatar palette |
    | `data/theme/theme.css` + `data/theme/fonts/` | the site's fonts (`@font-face`) and colors (`--rw-*` variables). Any family name works; list it first in `--rw-font` |
    | `data/icons/` | one SVG per platform key (current set: Google, Yelp, Zola, Facebook, plus social icons) |
-   | `data/sources.json` | the platforms the business is listed on: `scrape_url` (what the pull script scrapes) and `review_page_url` (fallback link) per review platform, plus optional `featured_on_website_review_ids` |
+   | `data/sources.json` | the platforms the business is listed on: `scrape_url` or `scrape_urls` (what the pull script scrapes) and `review_page_url` (fallback link) per review platform, plus optional filters: Amazon `asins`, Etsy `listing_ids` (import only those products), Google `featured_on_website_review_ids` |
    | `data/reviews/` | empty it (keep the folder) |
    | `data/summary.json` | delete it (no summary card) or write one for the new reviews |
    | `data/images/reviewers/` | empty it (keep the folder) |
@@ -181,7 +225,7 @@ The widget code (`assets/`, `index.html`, `embed.html`, `scripts/`, the workflow
 3. **Collect reviews:** run the [weekly pull](#weekly-pull-monitoring) with the `--all` flag, or add review files by hand. Then commit. The workflow rebuilds `data/reviews/index.json`.
 4. **Update the URLs** in this README (embed snippets, links).
 
-The importer understands Google, Yelp, Facebook, and Zola scraper output (plus an unused `--etsy` converter for `astravalabs/etsy-reviews-scraper`). Any other platform works in the widget if it has an entry in `config.json`, an icon, and review files (added by hand, or with a small converter added to `scripts/import_reviews.py`).
+The importer understands Google, Yelp, Facebook, Zola, Amazon (`junglee/amazon-reviews-scraper`) and Etsy (`astravalabs/etsy-reviews-scraper`) scraper output; the pull script only touches platforms that `data/sources.json` marks `reviews: true`. Any other platform works in the widget if it has an entry in `config.json`, an icon, and review files (added by hand, or with a small converter added to `scripts/import_reviews.py`).
 
 ---
 
@@ -243,7 +287,7 @@ One file per review in `data/reviews/`:
   "owner_reply": { "text": "…", "date": "2026-10-05T21:47:17Z" },  // the owner's public reply, or null
   "collected_at": "2026-10-05T22:00:27Z",
   "updated_at": "2026-10-06T00:09:42Z",   // set when an existing review is refreshed (--update)
-  "source": "direct",                      // 'elfsight' or 'direct'
+  "source": "direct",                      // how it was collected: 'direct', 'apify' or 'elfsight' (reviews imported before Oct 2026 say 'direct', including Apify pulls)
   // optional, platform-specific:
   "recommended": true,                     // Facebook
   "title": "…",                            // Zola review title
@@ -275,7 +319,7 @@ One file per review in `data/reviews/`:
 
 The *Build reviews index* Action then validates every file, commits a refreshed `data/reviews/index.json`, and Pages redeploys (about a minute). To check locally, run `node scripts/build-index.mjs`.
 
-**From scraper output:** `python3 scripts/import_reviews.py --google g.json --yelp y.json --facebook f.json --zola z.json` writes files for **new** reviews only. Add `--update` to also refresh existing ones; they keep their file names, avatars, and `collected_at`. Avatars are downloaded (never hotlinked). If a platform has no photo, an initials SVG is generated in the `config.json` palette.
+**From scraper output:** `python3 scripts/import_reviews.py --google g.json --yelp y.json --facebook f.json --source apify` (and `--zola z.json --source direct`) writes files for **new** reviews only. `--source` sets the `source` field (default `direct`); `--amazon` and `--etsy` also work, for sites that use them. Add `--update` to also refresh existing ones; they keep their file names, avatars, and `collected_at`. Avatars are downloaded (never hotlinked). If a platform has no photo, an initials SVG is generated in the `config.json` palette.
 
 ---
 
@@ -306,9 +350,9 @@ The date window starts 30 days before the newest stored review on that platform,
 cd heather-wolfe-art-reviews && git pull
 python3 scripts/pull_reviews.py --print-inputs
 #   -> for each platform: actor id + input (date window = newest stored review - 30 days) + cost cap
-#   run each actor with that input (Apify connector call-actor, maxTotalChargeUsd 0.25),
+#   run each actor with that input (Apify connector call-actor, maxTotalChargeUsd 0.5, Apify's minimum),
 #   save the dataset items as .pull/google.json, .pull/yelp.json, .pull/facebook.json
-python3 scripts/pull_reviews.py --from-raw   # pulls Zola directly, imports NEW reviews only, rebuilds index + schema
+python3 scripts/pull_reviews.py --from-raw   # pulls Zola directly (source "direct"), imports NEW reviews only (Apify ones get source "apify"), rebuilds index + schema
 #   if it prints "SUMMARY STALE": rewrite data/summary.json from .pull/summary_input.txt (see "AI summary card")
 git add data/reviews data/images/reviewers data/summary.json && git commit -m "reviews: add new reviews $(date +%F)" && git push
 ```
@@ -399,6 +443,13 @@ One compact row: rating on the left, platform filter tabs in the middle, **Write
 | ≤ 450px | the button text wraps onto two lines |
 | ≤ 380px | fully stacked, full-width button |
 
+With [`data-fixed-height`](#google-sites-and-other-fixed-height-boxes) the header also responds to the widget's height (the root becomes a `size` container):
+
+| Widget height | Header and cards |
+|---|---|
+| ≤ 460px | "Excellent" and "Based on" hidden, tighter header and card padding. In boxes ≤ 380px wide, the button stays beside the rating instead of dropping below the tabs |
+| ≤ 360px | also a smaller score, stars, button, tabs, avatars and review text |
+
 The carousel shows 4 cards above 1024px, 3 at ≤ 1024px, 2 at ≤ 760px, and one card (88% wide, swipeable, no arrows) at ≤ 520px.
 
 The "Write a review" button goes to the active platform's `write_url`; on the "All" tab it uses `default_write_platform` (Google).
@@ -433,13 +484,14 @@ The "Write a review" button goes to the active platform's `write_url`; on the "A
   - **Where it collapsed:** any parent that sizes children to their content (a Framer Embed or Squarespace code block wrapper, which is a centered flex column; inline-block, `fit-content`, float or absolute parents). There the old widget shrank to its 12px of padding and the container queries picked the narrowest layout.
   - **How the host fixes it:** the host is a full-width block (`width:100%; min-width:0; flex:1 1 100%; align-self:stretch; justify-self:stretch; text-align:left`, with a doubled class so page-builder rules can't override it).
   - **What the sizer adds:** a row of 24 inline blocks gives the host an intrinsic max-content width of `--rw-max-width` and a min-content width of 1/24 of it. Shrink-to-fit parents therefore size the widget to the available width without ever forcing overflow.
-  - **Clipping:** `.rw-clip` (`overflow-x: clip`) trims the arrows' overhang.
+  - **Clipping:** `.rw-clip` (`overflow-x: clip`) trims the arrows' overhang. `data-overflow="hidden"` uses `.rw-overflow-hidden` (`overflow: hidden`) instead.
+  - **Fixed height:** `data-fixed-height` gives the host a height: `100%` when its parent has a definite height (checked with a probe element), otherwise the window height below the widget's top minus the page's bottom margin, recalculated on resize. `.rw-root.rw-fixed` becomes a flex column with `container-type: size`; the track gets the remaining height (`grid-template-rows: minmax(0,1fr)`), and each card's text gets `overflow-y: auto`.
 - **Empty text:** a review whose text is empty or only whitespace / zero-width characters never gets a text element (no empty paragraph, quote, spacer, or placeholder). The card's "View on …" link is pinned to the bottom with `margin-top: auto`, so a card without text still lays out cleanly.
 - **Loading:** the script works out the repo root as `new URL('../../', document.currentScript.src)`, or uses `data-base`. In parallel it fetches `data/config.json`, `data/reviews/index.json` and (optional) `data/summary.json` (`cache: no-cache`); `data/reviews/schema.json` is fetched after the config says it's enabled and adds `<link>`s for `assets/css/reviews-widget.css` and `data/theme/theme.css`, unless the page already has them. `index.html` / `embed.html` include them in `<head>` and use the same single script tag. Everything is fetched once per page, however many widgets or script tags there are (shared through `window.__reviewsWidget`).
 - **No flash:** the root starts at `opacity: 0`. The widget waits for the stylesheets, then for weights 400, 700, and italic 300 of the first family in `--rw-font`. That wait has a timeout of `display.font_timeout_ms`; after it, the theme's metric-matched fallback face is used. After the first layout the widget fades in over 0.18s (instantly with reduced motion). The fonts use `font-display: block`.
 - **Icons:** the site's own SVG (`icon` in `config.json`, else `data/icons/<platform>.svg`) is always used. Only if that file fails to load does the `<img>` switch to the [Simple Icons CDN](https://simpleicons.org/) (`https://cdn.simpleicons.org/<simple_icon or platform key>`).
 - **Accessibility:** each card is a single `<a>` (new tab, `rel="noopener"`) with an aria label like "Read Kylee M.'s review on Google (opens in a new tab)". Nothing inside a card is interactive. The tabs are `role="tab"` buttons with counts in their labels, star ratings have text labels, and focus rings are visible. Cards have no shadows: hover lifts them 2px with an accent border, and focus shows a 3px accent outline.
-- **Iframe height:** inside an iframe the widget posts `{type: 'reviews-widget-height', height}` to the parent on render, resize, and tab change.
+- **Iframe height:** inside an iframe the widget posts `{type: 'reviews-widget-height', height}` to the parent on render, resize, and tab change (not with `data-fixed-height`).
 - **Validation (`scripts/build-index.mjs`):** checks the required fields (`id`, `platform`, `reviewer_name`, `reviewer_image`, `text`, `date`, `review_url`, `source`), rating 1-5 or null, ISO dates, unique ids, and that each `reviewer_image` exists under `data/images/reviewers/`. A failure stops the workflow without committing.
 - **Workflow:** `.github/workflows/build-index.yml` runs on pushes that touch `data/reviews/**` (other than the generated `index.json` / `schema.json`), `data/config.json`, `data/images/reviewers/**` or `scripts/build-index.mjs`, and on manual dispatch. It commits `index.json` and `schema.json` only if they changed. GitHub Pages deploys the branch as-is (`.nojekyll`).
 - **Local preview:** run `python3 -m http.server` in the repo root and open http://localhost:8000/. To try the JS embed against a local copy, point the script `src` at it. The fonts and JSON need CORS when served from a different origin; GitHub Pages sends `Access-Control-Allow-Origin: *`.
