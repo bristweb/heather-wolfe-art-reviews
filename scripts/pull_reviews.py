@@ -13,7 +13,7 @@ What to scrape comes from config.json `platforms` (`scrape_url` / `scrape_urls`;
 Each Apify run asks only for reviews newer than (latest stored review on that platform - since-days) and is capped
 with maxTotalChargeUsd. --all ignores the date window (full re-pull).
 Raw results live in .pull/ (git-ignored). Then runs import_reviews.py (new reviews only; full records stored).
-Finally checks the AI summary (config.json `summary`): if any review is dated or was collected after
+Finally checks the summary (config.json `summary`): if any review is dated or was collected after
 summary.generated_at, prints SUMMARY STALE and writes .pull/summary_input.txt (all review texts) so the run can
 rewrite summary.text and summary.generated_at. Validating, committing and pushing are left to the caller (see README).
 """
@@ -151,7 +151,7 @@ def main():
 
 
 def check_summary():
-    """The AI summary (config.json `summary` {text, generated_at}) is written by a person/agent from the stored
+    """The summary (config.json `summary` {text, generated_at}) is written by a person/agent from the stored
     reviews. It is stale when any review is dated or was collected after generated_at; then the review texts are
     dumped for rewriting it."""
     revs = load_reviews(ROOT)

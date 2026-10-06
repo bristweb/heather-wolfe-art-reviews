@@ -24,13 +24,12 @@ JavaScript (preferred), where the widget should appear:
         data-source="https://bristweb.github.io/heather-wolfe-art-reviews/" defer></script>
 ```
 
-Google Sites or any other fixed-height box (*Insert → Embed → Embed code*, then drag the box to about 420px tall):
+Google Sites or any other fixed-height box (*Insert → Embed → Embed code*, then drag the box to about 420px tall) — one toggle:
 
 ```html
 <script src="https://bristweb.github.io/reviews-widget/assets/js/reviews-widget.js"
         data-source="https://bristweb.github.io/heather-wolfe-art-reviews/"
-        data-fixed-height="true" data-arrows="inside" data-overflow="hidden"
-        data-hover-lift="false" data-focus-ring="inside"></script>
+        data-constrained="true"></script>
 ```
 
 Iframe:
@@ -52,7 +51,7 @@ All options (layout, platform filter, limit, fitting options): see the [reviews-
 
 ```
 config.json           business, platforms (tab order, links, scrape URLs, reported counts), links, display,
-                      strings, schema, avatar palette, AI summary, reviews.years
+                      strings, schema, avatar palette, summary, reviews.years
 reviews/<year>.json   the reviews dated in that year, newest first (2016-2026)
 images/reviewers/     avatars: <platform>-<platform_review_id>.<ext> (filesystem-safe)
 icons/                platform logos (google, yelp, zola, facebook) + social icons
@@ -98,14 +97,14 @@ Each Apify run asks only for reviews newer than the newest stored one on that pl
 python3 scripts/pull_reviews.py --print-inputs   # per platform: actor, input with the date window, cost cap, save path
 # run each actor with that input (e.g. Apify connector call-actor, maxTotalChargeUsd 0.5) and save its dataset items
 # as a JSON array to the printed path (.pull/google.json, .pull/yelp.json, .pull/facebook.json)
-python3 scripts/pull_reviews.py --from-raw       # pulls Zola directly, imports NEW reviews only, checks the AI summary
+python3 scripts/pull_reviews.py --from-raw       # pulls Zola directly, imports NEW reviews only, checks the summary
 node ../reviews-widget/scripts/validate.mjs .    # optional local check (the push workflow runs it too)
 git add reviews images/reviewers config.json && git commit -m "reviews: sync $(date +%F)" && git push
 ```
 
 Other ways to run it: `APIFY_TOKEN=… python3 scripts/pull_reviews.py` calls the Apify REST API itself; `--all` drops the date window (still adds only new reviews); `python3 scripts/import_reviews.py --update --<platform> <file>` refreshes existing records (keeping `collected_at`, avatars and `featured_on_website`). `.pull/` holds raw scraper output and is git-ignored.
 
-New reviews are added to `reviews/<year>.json` (a new year gets a new file and is added to `reviews.years`), with avatars downloaded to `images/reviewers/<platform>-<platform_review_id>.<ext>` or an initials SVG in the `avatars` colors. **AI summary:** after an import the script prints `SUMMARY STALE` when any review is dated or was collected after `summary.generated_at`, and writes every review text to `.pull/summary_input.txt`. Rewrite `summary.text` from it (2-4 sentences, about 300 characters, only themes that appear in the reviews, no invented facts, no attributed quotes, no star claims) and set `summary.generated_at` to the current UTC time.
+New reviews are added to `reviews/<year>.json` (a new year gets a new file and is added to `reviews.years`), with avatars downloaded to `images/reviewers/<platform>-<platform_review_id>.<ext>` or an initials SVG in the `avatars` colors. **Summary:** after an import the script prints `SUMMARY STALE` when any review is dated or was collected after `summary.generated_at`, and writes every review text to `.pull/summary_input.txt`. Rewrite `summary.text` from it (2-4 sentences, about 300 characters, only themes that appear in the reviews, no invented facts, no attributed quotes, no star claims) and set `summary.generated_at` to the current UTC time.
 
 ## Look and feel
 
