@@ -1,6 +1,6 @@
 # Heather Wolfe Art — reviews data
 
-Every public review of **[Heather Wolfe Art](https://heatherwolfeart.com/)** (live wedding & event painting, Knoxville TN), plus the settings and theme for its reviews widget. The widget code and its documentation live in **[bristweb/reviews-widget](https://github.com/bristweb/reviews-widget)** (including a short [feature comparison](https://github.com/bristweb/reviews-widget/blob/main/COMPARISON.md) with hosted review-widget SaaS and reputation platforms); this repo holds the data plus this site's own [sync tooling](#sync-tooling). GitHub Pages serves these files at `https://bristweb.github.io/heather-wolfe-art-reviews/`.
+Every public review of **[Heather Wolfe Art](https://heatherwolfeart.com/)** (live wedding & event painting, Knoxville TN), plus the settings and theme for its reviews widget. The widget code and its documentation live in **[bristweb/cred](https://github.com/bristweb/cred)** (including a short [feature comparison](https://github.com/bristweb/cred/blob/main/COMPARISON.md) with hosted review-widget SaaS and reputation platforms); this repo holds the data plus this site's own [sync tooling](#sync-tooling). GitHub Pages serves these files at `https://bristweb.github.io/heather-wolfe-art-reviews/`.
 
 - **Live widget:** https://cred-d2r.pages.dev/?source=https://heather-wolfe-art-reviews.pages.dev/
 - **Settings:** [`config.json`](config.json) · **Reviews:** [`reviews/`](reviews/) (one file per year)
@@ -46,7 +46,7 @@ Iframe:
 </script>
 ```
 
-All options (layout, platform filter, limit, fitting options): see the [reviews-widget README](https://github.com/bristweb/reviews-widget#options).
+All options (layout, platform filter, limit, fitting options): see the [cred README](https://github.com/bristweb/cred#options).
 
 ## What's here
 
@@ -62,7 +62,7 @@ scripts/              this site's sync tooling (never loaded by the widget)
 .github/workflows/    validate.yml: runs the shared validator on every push
 ```
 
-The record format is documented in [reviews-widget: Data repo format](https://github.com/bristweb/reviews-widget#data-repo-format). How reviews are obtained (Zola directly; Google, Yelp and Facebook through Apify) lives only in `config.json` / `scripts/`, never on the review objects. Records store everything collected (full names, full text, owner replies, profile and avatar URLs); the widget abbreviates names and clips text when it renders.
+The record format is documented in [cred: Data repo format](https://github.com/bristweb/cred#data-repo-format). How reviews are obtained (Zola directly; Google, Yelp and Facebook through Apify) lives only in `config.json` / `scripts/`, never on the review objects. Records store everything collected (full names, full text, owner replies, profile and avatar URLs); the widget abbreviates names and clips text when it renders.
 
 ## Reviews and platforms
 
@@ -109,7 +109,7 @@ python3 scripts/pull_reviews.py --print-inputs   # per platform: actor, input wi
 # run each actor with that input (e.g. Apify connector call-actor, maxTotalChargeUsd 0.5) and save its dataset items
 # as a JSON array to the printed path (.pull/google.json, .pull/yelp.json, .pull/facebook.json)
 python3 scripts/pull_reviews.py --from-raw       # pulls Zola directly, imports NEW reviews only, checks the summary
-node ../reviews-widget/scripts/validate.mjs .    # optional local check (the push workflow runs it too)
+node ../cred/scripts/validate.mjs .    # optional local check (the push workflow runs it too)
 git add reviews images/reviewers config.json && git commit -m "reviews: sync $(date +%F)" && git push
 ```
 
