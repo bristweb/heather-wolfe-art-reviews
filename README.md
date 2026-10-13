@@ -21,14 +21,14 @@ Every public review of **[Heather Wolfe Art](https://heatherwolfeart.com/)** (li
 JavaScript (preferred), where the widget should appear:
 
 ```html
-<script src="https://bristweb.github.io/reviews-widget/assets/js/reviews-widget.js"
+<script src="https://bristweb.github.io/reviews-widget/assets/js/cred.js"
         data-source="https://bristweb.github.io/heather-wolfe-art-reviews/" defer></script>
 ```
 
 Google Sites or any other fixed-height box (*Insert → Embed → Embed code*, then drag the box to about 420px tall) — one toggle:
 
 ```html
-<script src="https://bristweb.github.io/reviews-widget/assets/js/reviews-widget.js"
+<script src="https://bristweb.github.io/reviews-widget/assets/js/cred.js"
         data-source="https://bristweb.github.io/heather-wolfe-art-reviews/"
         data-constrained="true"></script>
 ```
