@@ -1,0 +1,222 @@
+// @ts-check
+// CRED widget config for this data repo (https://github.com/bristweb/cred). Plain JavaScript, so comments are fine.
+// The type hint below gives editor autocomplete and checks; cred-config.d.ts is generated from the widget's schema.
+
+/** @type {import('./cred-config').CredConfig} */
+export default {
+  // Widget version (semver). "latest" follows every release; pin a caret range such as "^1.1.0" in production
+  // so breaking changes (a new major version) never reach your site.
+  version: "^1.0.0",
+
+  // The business shown in the header and in the schema.org JSON-LD.
+  business: {
+    name: "Heather Wolfe Art",
+    website: "https://heatherwolfeart.com/"
+  },
+
+  // Where the stored reviews come from (tooling notes).
+  sources: {
+    checked_at: "2026-10-05",
+    notes: "Every URL linked from the heatherwolfeart.com footer/home page. `platforms` are the review platforms, monitored by scripts/pull_reviews.py; `links` are social profiles with no review system. `reported_*` values are what the platform itself showed on checked_at. `scrape_url` is what scripts/pull_reviews.py feeds to the scraper (Zola: fetched directly); `page_url` doubles as the fallback review link when a scraped review has no individual URL."
+  },
+
+  // Platform the "Write a review" button opens on the All tab.
+  default_write_platform: "google",
+
+  // Review platforms, keyed by the `platform` value used in reviews/<year>.json.
+  platforms: {
+    google: {
+      name: "Google",
+      icon: "icons/google.svg",
+      write_url: "https://g.page/r/CUdS9bBcbapvEAE/review",
+      page_url: "https://search.google.com/local/reviews?placeid=ChIJ2V86YMkXXIgRR1L1sFxtqm8",
+      card_link: "review",
+      linked_url: "https://g.page/r/CUdS9bBcbapvEAE/review",
+      scrape_url: "https://www.google.com/maps?cid=8046363929124098631",
+      maps_url: "https://www.google.com/maps?cid=8046363929124098631",
+      place_id: "ChIJ2V86YMkXXIgRR1L1sFxtqm8",
+      cid: "8046363929124098631",
+      reported_rating: 5,
+      reported_count: 57,
+      featured_note: "Google reviews excerpted as \"Testimonials\" on the website home page (Brendan C., Haley R., Ciera S.); stored as featured_on_website: true."
+    },
+    yelp: {
+      name: "Yelp",
+      icon: "icons/yelp.svg",
+      write_url: "https://www.yelp.com/writeareview/biz/heather-wolfe-art-knoxville",
+      page_url: "https://www.yelp.com/biz/heather-wolfe-art-knoxville",
+      card_link: "review",
+      linked_url: "https://www.yelp.com/biz/heather-wolfe-art-knoxville",
+      scrape_url: "https://www.yelp.com/biz/heather-wolfe-art-knoxville",
+      reported_rating: 5,
+      reported_count: 5
+    },
+    zola: {
+      name: "Zola",
+      icon: "icons/zola.svg",
+      invert_icon_when_active: true,
+      write_url: "https://www.zola.com/wedding-vendors/wedding-extras/heather-wolfe-art-live-painting#reviews",
+      page_url: "https://www.zola.com/wedding-vendors/wedding-extras/heather-wolfe-art-live-painting#reviews",
+      card_link: "review",
+      linked_url: "https://www.zola.com/wedding-vendors/wedding-extras/heather-wolfe-art-live-painting",
+      scrape_url: "https://www.zola.com/wedding-vendors/wedding-extras/heather-wolfe-art-live-painting",
+      reported_rating: 5,
+      reported_count: 5
+    },
+    facebook: {
+      name: "Facebook",
+      icon: "icons/facebook.svg",
+      write_url: "https://www.facebook.com/HeatherWolfeArt/reviews",
+      page_url: "https://www.facebook.com/HeatherWolfeArt/reviews",
+      card_link: "page",
+      linked_url: "https://www.facebook.com/HeatherWolfeArt",
+      scrape_url: "https://www.facebook.com/HeatherWolfeArt/reviews",
+      reported_rating: "100% recommend",
+      reported_count: 16,
+      rating_note: "Facebook shows recommend / don't recommend, not stars, on every review here (even 2016-2017 ones are rendered as \"<name> recommends Heather Wolfe Art\"). `rating` stays null unless Facebook itself shows a star value: the only one is Jessica V. (2018-01-23), whose review carries the recommendation tag \"5 stars\" (stored as rating 5, rating_source noted). Only 9 of 16 reviews are publicly visible without a login. Checked 2026-10-05: apify/facebook-reviews-scraper, patient_discovery/facebook-page-reviews and each review's public post page."
+    }
+  },
+
+  // Extra links used by tooling.
+  links: [
+    {
+      platform: "instagram",
+      name: "Instagram",
+      linked_url: "https://www.instagram.com/heather_wolfe_art",
+      icon: "icons/instagram.svg",
+      note: "Shown on the site via the Elfsight InstaShow feed widget (not a reviews widget)."
+    },
+    {
+      platform: "tiktok",
+      name: "TikTok",
+      linked_url: "https://www.tiktok.com/@heatherwolfeart",
+      icon: "icons/tiktok.svg"
+    },
+    {
+      platform: "youtube",
+      name: "YouTube",
+      linked_url: "https://www.youtube.com/@HeatherWolfeArt",
+      icon: "icons/youtube.svg"
+    },
+    {
+      platform: "x",
+      name: "X",
+      linked_url: "https://x.com/HeatherWolfeArt",
+      icon: "icons/x.svg"
+    }
+  ],
+
+  // Presentation defaults; data-* attributes and URL parameters override these.
+  display: {
+    layout: "carousel",
+    snippet_chars: 160,
+    abbreviate_last_names: true,
+    max_same_platform_run: 2,
+    diversity_window_days: 548,
+    date_locale: "en-US",
+    date_options: {
+      year: "numeric",
+      month: "short",
+      day: "numeric"
+    },
+    font_timeout_ms: 1200,
+    show_rating_only_reviews: false,
+    show_summary: true,
+    fixed_height: false,
+    overflow: "clip",
+    arrows: "outside",
+    hover_lift: true,
+    focus_ring: "outside",
+    cards: 0,
+    padding: 6
+  },
+
+  // schema.org JSON-LD settings.
+  schema: {
+    enabled: true,
+    type: "LocalBusiness",
+    max_reviews: 0
+  },
+
+  // Words shown next to the average rating, highest threshold first.
+  rating_labels: [
+    {
+      min: 4.75,
+      label: "Excellent"
+    },
+    {
+      min: 4.25,
+      label: "Great"
+    },
+    {
+      min: 3.5,
+      label: "Good"
+    },
+    {
+      min: 0,
+      label: "Reviews"
+    }
+  ],
+
+  // Inline UI wording overrides (keys as in the widget's lang/en.json).
+  strings: {
+    loading: "Loading reviews…",
+    unavailable: "Reviews are unavailable right now.",
+    tabs_aria: "Filter reviews by platform",
+    tab_all: "All",
+    tab_title: "{name}: {count} reviews",
+    tab_aria: "{name}, {count} reviews",
+    write_review: "Write a review",
+    based_on: "Based on ",
+    review_one: "review",
+    review_many: "reviews",
+    on_platform: " on {platform}",
+    stars_aria: "{rating} out of 5 stars",
+    recommends: "Recommends",
+    view_on: "View on {platform}",
+    card_aria: "Read {name}'s review on {platform} (opens in a new tab)",
+    anonymous: "Anonymous",
+    previous: "Previous reviews",
+    next: "Next reviews",
+    ai_summary: "Summary",
+    ai_summary_aria: "Summary of {count} reviews"
+  },
+
+  // Colors for generated initials avatars.
+  avatars: {
+    initials_palette: [
+      "#204A60",
+      "#3C4E58",
+      "#85A0AD",
+      "#2F6680",
+      "#5B7685",
+      "#4A6B7C"
+    ],
+    initials_text_color: "#fff"
+  },
+
+  // Summary card. Update generated_at whenever the text is rewritten.
+  summary: {
+    text: "Couples call Heather's live wedding painting a highlight of their day; guests loved watching the canvas come together. Reviewers praise the detailed paintings they'll treasure, her kindness and quick communication, and the planning call that shapes their vision. A few mention pet portraits and other commissions.",
+    generated_at: "2026-10-06T01:55:14Z"
+  },
+
+  // Yearly review files reviews/<year>.json, newest first. `years` is kept up to date by the import script.
+  reviews: { years: [2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016] },
+
+  // Awards, shown on the All track by year and on the Awards filter.
+  accolades: [
+    {
+      label: "Best of Zola",
+      year: 2026,
+      icon: "icons/best-of-zola-2026.png",
+      url: "https://www.zola.com/wedding-vendors/wedding-extras/heather-wolfe-art-live-painting"
+    },
+    {
+      label: "Cityview Best of the Best",
+      year: 2021,
+      icon: "icons/cityview-best-of-the-best.png",
+      url: "https://cityviewmag.com/best-of-the-best-2021/"
+    }
+  ],
+};

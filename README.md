@@ -3,7 +3,7 @@
 Every public review of **[Heather Wolfe Art](https://heatherwolfeart.com/)** (live wedding & event painting, Knoxville TN), plus the settings and theme for its reviews widget. The widget code and its documentation live in **[bristweb/cred](https://github.com/bristweb/cred)** (including a short [feature comparison](https://github.com/bristweb/cred/blob/main/COMPARISON.md) with hosted review-widget SaaS and reputation platforms); this repo holds the data plus this site's own [sync tooling](#sync-tooling). Cloudflare Pages serves these files at `https://heather-wolfe-art-reviews.pages.dev/` (deployed by `.github/workflows/deploy.yml`); GitHub Pages at `https://bristweb.github.io/heather-wolfe-art-reviews/` is the backup.
 
 - **Live widget:** https://cred.bristleconeweb.com/?source=https://heather-wolfe-art-reviews.pages.dev/
-- **Settings:** [`config.json`](config.json) · **Reviews:** [`reviews/`](reviews/) (one file per year)
+- **Settings:** [`config.js`](config.js) · **Reviews:** [`reviews/`](reviews/) (one file per year)
 
 ## Contents
 
@@ -51,7 +51,7 @@ All options (layout, platform filter, limit, fitting options): see the [cred REA
 ## What's here
 
 ```
-config.json           business, platforms (tab order, links, scrape URLs, reported counts), links, display,
+config.js           business, platforms (tab order, links, scrape URLs, reported counts), links, display,
                       strings, schema, avatar palette, summary, accolades, reviews.years
 reviews/<year>.json   the reviews dated in that year, newest first (2016-2026)
 images/reviewers/     avatars: <platform>-<platform_review_id>.<ext> (filesystem-safe)
@@ -62,7 +62,7 @@ scripts/              this site's sync tooling (never loaded by the widget)
 .github/workflows/    validate.yml: runs the shared validator on every push
 ```
 
-The record format is documented in [cred: Data repo format](https://github.com/bristweb/cred#data-repo-format). How reviews are obtained (Zola directly; Google, Yelp and Facebook through Apify) lives only in `config.json` / `scripts/`, never on the review objects. Records store everything collected (full names, full text, owner replies, profile and avatar URLs); the widget abbreviates names and clips text when it renders.
+The record format is documented in [cred: Data repo format](https://github.com/bristweb/cred#data-repo-format). How reviews are obtained (Zola directly; Google, Yelp and Facebook through Apify) lives only in `config.js` / `scripts/`, never on the review objects. Records store everything collected (full names, full text, owner replies, profile and avatar URLs); the widget abbreviates names and clips text when it renders.
 
 ## Reviews and platforms
 
@@ -73,7 +73,7 @@ The record format is documented in [cred: Data repo format](https://github.com/b
 | Zola | 5 | 5.0 ★ · 5 reviews | https://www.zola.com/wedding-vendors/wedding-extras/heather-wolfe-art-live-painting |
 | Facebook | 9 | 100% recommend · 16 reviews (only 9 public without login) | https://www.facebook.com/HeatherWolfeArt/reviews |
 
-76 reviews (55 with an owner reply). Every platform linked from heatherwolfeart.com, including social profiles with no review system (`links`), is listed in `config.json` with what was checked.
+76 reviews (55 with an owner reply). Every platform linked from heatherwolfeart.com, including social profiles with no review system (`links`), is listed in `config.js` with what was checked.
 
 - **Review links:** `review_url` is the individual review where the platform has one: Google review links, Yelp `?hrid=` links, Facebook post URLs. Zola has no per-review URL, so it stores the storefront's reviews section.
 - **Facebook ratings:** Facebook replaced stars with recommend / don't recommend in 2018 and renders every one of these reviews as "<name> recommends Heather Wolfe Art", with no star value in the page data, the public post pages, or any scraper output checked (`apify/facebook-reviews-scraper`, `patient_discovery/facebook-page-reviews`). A rating is stored only when Facebook itself shows one: Jessica V.'s review (2018-01-23) carries the tag **"5 stars"**, so it has `rating: 5` and `rating_source`. A rating is never inferred from "recommends". The other 8 have `rating: null`.
@@ -84,7 +84,7 @@ The record format is documented in [cred: Data repo format](https://github.com/b
 
 ## Accolades
 
-Award badges in `config.json` `accolades` (sorted by the widget as `YYYY-12-31` so each leads its year). Icons and source URLs: [`icons/ATTRIBUTION.md`](icons/ATTRIBUTION.md).
+Award badges in `config.js` `accolades` (sorted by the widget as `YYYY-12-31` so each leads its year). Icons and source URLs: [`icons/ATTRIBUTION.md`](icons/ATTRIBUTION.md).
 
 | Award | Year | Link |
 |---|---|---|
@@ -93,7 +93,7 @@ Award badges in `config.json` `accolades` (sorted by the widget as `YYYY-12-31` 
 
 ## Sync tooling
 
-`scripts/` collects this site's reviews (Python 3, no packages); the widget never loads it. Settings live in `config.json` `platforms`: `scrape_url` (what each scraper is given), `page_url` (fallback link when a review has no URL of its own), and `avatars` (initials colors). How often it runs is up to whoever schedules it.
+`scripts/` collects this site's reviews (Python 3, no packages; Node reads `config.js`); the widget never loads it. Settings live in `config.js` `platforms`: `scrape_url` (what each scraper is given), `page_url` (fallback link when a review has no URL of its own), and `avatars` (initials colors). How often it runs is up to whoever schedules it.
 
 | Platform | Method | Actor | Why |
 |---|---|---|---|
@@ -110,7 +110,7 @@ python3 scripts/pull_reviews.py --print-inputs   # per platform: actor, input wi
 # as a JSON array to the printed path (.pull/google.json, .pull/yelp.json, .pull/facebook.json)
 python3 scripts/pull_reviews.py --from-raw       # pulls Zola directly, imports NEW reviews only, checks the summary
 node ../cred/scripts/validate.mjs .    # optional local check (the push workflow runs it too)
-git add reviews images/reviewers config.json && git commit -m "reviews: sync $(date +%F)" && git push
+git add reviews images/reviewers config.js && git commit -m "reviews: sync $(date +%F)" && git push
 ```
 
 Other ways to run it: `APIFY_TOKEN=… python3 scripts/pull_reviews.py` calls the Apify REST API itself; `--all` drops the date window (still adds only new reviews); `python3 scripts/import_reviews.py --update --<platform> <file>` refreshes existing records (keeping `collected_at`, avatars and `featured_on_website`). `.pull/` holds raw scraper output and is git-ignored.
