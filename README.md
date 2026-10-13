@@ -2,7 +2,7 @@
 
 Every public review of **[Heather Wolfe Art](https://heatherwolfeart.com/)** (live wedding & event painting, Knoxville TN), plus the settings and theme for its reviews widget. The widget code and its documentation live in **[bristweb/cred](https://github.com/bristweb/cred)** (including a short [feature comparison](https://github.com/bristweb/cred/blob/main/COMPARISON.md) with hosted review-widget SaaS and reputation platforms); this repo holds the data plus this site's own [sync tooling](#sync-tooling). GitHub Pages serves these files at `https://bristweb.github.io/heather-wolfe-art-reviews/`.
 
-- **Live widget:** https://cred-d2r.pages.dev/?source=https://heather-wolfe-art-reviews.pages.dev/
+- **Live widget:** https://cred.bristleconeweb.com/?source=https://heather-wolfe-art-reviews.pages.dev/
 - **Settings:** [`config.json`](config.json) · **Reviews:** [`reviews/`](reviews/) (one file per year)
 
 ## Contents
@@ -21,14 +21,14 @@ Every public review of **[Heather Wolfe Art](https://heatherwolfeart.com/)** (li
 JavaScript (preferred), where the widget should appear:
 
 ```html
-<script src="https://cred-d2r.pages.dev/assets/js/cred.js"
+<script src="https://cred.bristleconeweb.com/assets/js/cred.js"
         data-source="https://heather-wolfe-art-reviews.pages.dev/" defer></script>
 ```
 
 Google Sites or any other fixed-height box (*Insert → Embed → Embed code*, then drag the box to about 420px tall) — one toggle:
 
 ```html
-<script src="https://cred-d2r.pages.dev/assets/js/cred.js"
+<script src="https://cred.bristleconeweb.com/assets/js/cred.js"
         data-source="https://heather-wolfe-art-reviews.pages.dev/"
         data-constrained="true"></script>
 ```
@@ -36,7 +36,7 @@ Google Sites or any other fixed-height box (*Insert → Embed → Embed code*, t
 Iframe:
 
 ```html
-<iframe id="reviews-widget" src="https://cred-d2r.pages.dev/embed.html?source=https://heather-wolfe-art-reviews.pages.dev/"
+<iframe id="reviews-widget" src="https://cred.bristleconeweb.com/embed.html?source=https://heather-wolfe-art-reviews.pages.dev/"
         title="Reviews" loading="lazy" scrolling="no" style="width:100%;border:0;height:420px"></iframe>
 <script>
   addEventListener('message', function (e) {
