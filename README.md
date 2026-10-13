@@ -1,6 +1,6 @@
 # Heather Wolfe Art — reviews data
 
-Every public review of **[Heather Wolfe Art](https://heatherwolfeart.com/)** (live wedding & event painting, Knoxville TN), plus the settings and theme for its reviews widget. The widget code and its documentation live in **[bristweb/cred](https://github.com/bristweb/cred)** (including a short [feature comparison](https://github.com/bristweb/cred/blob/main/COMPARISON.md) with hosted review-widget SaaS and reputation platforms); this repo holds the data plus this site's own [sync tooling](#sync-tooling). GitHub Pages serves these files at `https://bristweb.github.io/heather-wolfe-art-reviews/`.
+Every public review of **[Heather Wolfe Art](https://heatherwolfeart.com/)** (live wedding & event painting, Knoxville TN), plus the settings and theme for its reviews widget. The widget code and its documentation live in **[bristweb/cred](https://github.com/bristweb/cred)** (including a short [feature comparison](https://github.com/bristweb/cred/blob/main/COMPARISON.md) with hosted review-widget SaaS and reputation platforms); this repo holds the data plus this site's own [sync tooling](#sync-tooling). Cloudflare Pages serves these files at `https://heather-wolfe-art-reviews.pages.dev/` (deployed by `.github/workflows/deploy.yml`); GitHub Pages at `https://bristweb.github.io/heather-wolfe-art-reviews/` is the backup.
 
 - **Live widget:** https://cred.bristleconeweb.com/?source=https://heather-wolfe-art-reviews.pages.dev/
 - **Settings:** [`config.json`](config.json) · **Reviews:** [`reviews/`](reviews/) (one file per year)
@@ -18,7 +18,7 @@ Every public review of **[Heather Wolfe Art](https://heatherwolfeart.com/)** (li
 
 ## Embed
 
-JavaScript (preferred), where the widget should appear:
+JavaScript (recommended), where the widget should appear:
 
 ```html
 <script src="https://cred.bristleconeweb.com/assets/js/cred.js"
