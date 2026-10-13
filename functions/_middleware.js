@@ -1,56 +1,35 @@
-// Serves files only to sites listed in config.json "allowed_origins".
-// Entries are hostnames; "*.example.com" also matches subdomains.
-// Requests with no Origin/Referer (direct visits, crawlers) are allowed.
-const ALWAYS = ["localhost", "127.0.0.1"];
-
+// Optional Cloudflare Pages Function (same file for the widget repo and data repos). With an empty or missing
+// allowlist.json every request is served, with Access-Control-Allow-Origin: *. With hosts listed, a request whose
+// Origin/Referer is another, unlisted host gets 403; "*.example.com" also matches subdomains. Requests with no
+// Origin/Referer (direct visits, crawlers) and from the host itself are always served.
+// This deters hotlinking; it is not access control (headers can be omitted or forged).
 let cached;
 async function allowlist(context) {
   if (!cached) {
     try {
-      const url = new URL("/config.json", context.request.url);
-      const res = await context.env.ASSETS.fetch(url);
+      const res = await context.env.ASSETS.fetch(new URL('/allowlist.json', context.request.url));
       cached = (await res.json()).allowed_origins || [];
     } catch { cached = []; }
   }
   return cached;
 }
-
-function hostOf(value) {
-  try { return new URL(value).hostname.toLowerCase(); } catch { return null; }
-}
-
-function matches(host, list) {
-  return list.some((entry) => {
-    entry = String(entry).toLowerCase();
-    if (entry.startsWith("*.")) return host.endsWith(entry.slice(1));
-    return host === entry;
-  });
-}
+const hostOf = v => { try { return new URL(v).hostname.toLowerCase(); } catch { return null; } };
+const matches = (host, list) => list.some(e => {
+  e = String(e).toLowerCase();
+  return e.startsWith('*.') ? host.endsWith(e.slice(1)) : host === e;
+});
 
 export async function onRequest(context) {
   const { request } = context;
-  const origin = request.headers.get("Origin");
-  const caller = hostOf(origin || request.headers.get("Referer") || "");
-  const self = new URL(request.url).hostname;
-
-  if (caller && caller !== self && !matches(caller, [...ALWAYS, ...(await allowlist(context))])) {
-    return new Response("Forbidden", { status: 403, headers: { "Vary": "Origin, Referer" } });
-  }
-  if (request.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: cors(origin) });
+  const url = new URL(request.url);
+  const list = await allowlist(context);
+  const caller = hostOf(request.headers.get('Origin') || request.headers.get('Referer') || '');
+  if (list.length && caller && caller !== url.hostname && !matches(caller, list)) {
+    return new Response('Forbidden', { status: 403, headers: { 'Vary': 'Origin, Referer' } });
   }
   const res = await context.next();
   const out = new Response(res.body, res);
-  for (const [k, v] of Object.entries(cors(origin))) out.headers.set(k, v);
-  out.headers.append("Vary", "Origin, Referer");
+  out.headers.set('Access-Control-Allow-Origin', '*');
+  out.headers.append('Vary', 'Origin, Referer');
   return out;
-}
-
-function cors(origin) {
-  if (!origin || origin === "null") return { "Access-Control-Allow-Origin": "*" };
-  return {
-    "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-    "Access-Control-Allow-Headers": "*",
-  };
 }
