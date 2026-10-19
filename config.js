@@ -199,8 +199,8 @@ export default {
 
   // Summary card. Update generated_at whenever the text is rewritten.
   summary: {
-    text: "Couples call Heather's live wedding painting a highlight of their day; guests loved watching the canvas come together. Reviewers praise the detailed paintings they'll treasure, her kindness and quick communication, and the planning call that shapes their vision. A few mention pet portraits and other commissions.",
-    generated_at: "2026-10-06T01:55:14Z"
+    text: "Couples call Heather's live wedding painting a highlight; guests loved watching the canvas come together. Reviewers praise detailed keepsake paintings, her kindness and quick replies, planning calls that shape the vision, and flexibility when plans change. A few mention pet portraits and other commissions.",
+    generated_at: "2026-10-19T13:26:24Z"
   },
 
   // Yearly review files reviews/<year>.json, newest first. `years` is kept up to date by the import script.
